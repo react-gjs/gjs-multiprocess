@@ -8,6 +8,10 @@ export const serverInterface = (name: string) =>
     <method name="ModuleLoaded">
       <arg type="s" name="clientName"/>
     </method>
+    <method name="LoadError">
+      <arg type="s" name="clientName"/>
+      <arg type="s" name="error"/>
+    </method>
     <method name="ActionError">
       <arg type="s" name="clientName"/>
       <arg type="s" name="actionID"/>

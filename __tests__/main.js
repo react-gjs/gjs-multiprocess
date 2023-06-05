@@ -15,7 +15,7 @@ async function main() {
 
     /** @type {WorkerApi} */
     const client1 = await server.createClient(
-      "file:///home/owner/Documents/gjs-multiprocess/__tests__/worker.js",
+      "./__tests__/worker.js",
       serverApi
     );
 
@@ -38,13 +38,15 @@ async function main() {
     // );
 
     const longs = await Promise.all([
-      client1.invoke("quuz", "boobs"),
+      client1.invoke.quuz("abcd"),
       // client2.invoke("foo"),
       // client3.invoke("quuz"),
       // client4.invoke("quux"),
     ]);
 
     console.log(longs);
+  } catch (e) {
+    console.log("Worker failed with:", e);
   } finally {
     server.close();
   }

@@ -27,6 +27,7 @@ export type InvokeResult =
 export type ClientEvents = {
   isReady: [];
   moduleLoaded: [];
+  loadError: [Error];
   invokeResult: [InvokeResult];
 };
 
@@ -103,24 +104,28 @@ export class ClientController {
     }
 
     (async () => {
-      try {
-        const args = JSON.parse(arguments_);
-        const result = await fn(...args);
-        this.actionResult(actionID, result);
-      } catch (error) {
-        this.actionError(actionID, error);
-      }
-    })();
+      const args = JSON.parse(arguments_);
+      const result = await fn(...args);
+      this.actionResult(actionID, result);
+    })().catch((error) => {
+      this.actionError(actionID, error);
+    });
   }
 
   loadImport(importPath: string) {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       const onLoad = () => {
         this.emitter.off("moduleLoaded", onLoad);
         resolve();
       };
 
+      const onError = (e: Error) => {
+        this.emitter.off("loadError", onError);
+        reject(e);
+      };
+
       this.emitter.on("moduleLoaded", onLoad);
+      this.emitter.on("loadError", onError);
 
       if (this.isReady) {
         this.client.LoadImportAsync(importPath).catch(printError);
@@ -141,6 +146,21 @@ export class ClientController {
 
   notifyModuleLoaded() {
     this.emitter.emit("moduleLoaded");
+  }
+
+  notifyLoadError(e: string) {
+    const serializedError = JSON.parse(e);
+    const isObject =
+      typeof serializedError === "object" && serializedError !== null;
+    const message = isObject
+      ? serializedError.message
+      : String(serializedError);
+    const stack = isObject ? serializedError.stack : undefined;
+
+    const error = new Error(message);
+    error.stack = stack;
+
+    this.emitter.emit("loadError", error);
   }
 
   notifyActionError(actionID: string, error: string) {

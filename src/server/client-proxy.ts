@@ -12,18 +12,33 @@ export type ClientFunctions = Record<string, (...args: any[]) => any>;
 export class ClientProxy<C extends ClientFunctions> {
   private id = new IdGenerator();
 
+  public invoke;
+
   constructor(
     private emitter: EventEmitter<ClientEvents>,
     private client: ReturnType<
       ReturnType<typeof createDBusProxy<ClientInterface>>
     >
-  ) {}
+  ) {
+    const subprocess = this;
 
-  async terminate() {
+    function invoke(functionName: string, ...args: Parameters<C[keyof C]>) {
+      return subprocess._invoke(functionName, ...args);
+    }
+
+    this.invoke = new Proxy(invoke, {
+      get(_, functionName: any) {
+        return (...args: Parameters<C[keyof C]>) =>
+          invoke(functionName, ...args);
+      },
+    });
+  }
+
+  terminate() {
     this.client.TerminateSync();
   }
 
-  async invoke<F extends keyof C>(
+  async _invoke<F extends keyof C>(
     functionName: F,
     ...args: Parameters<C[F]>
   ): Promise<ReturnType<C[F]>> {

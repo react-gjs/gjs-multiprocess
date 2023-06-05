@@ -4,6 +4,7 @@ import { serverInterface } from "../server/interface";
 import type { XmlInterface } from "../shared/create-proxy";
 import { createDBusProxy } from "../shared/create-proxy";
 import { printError } from "../shared/print-error";
+import { serializeError } from "../shared/serialize-error";
 import { DBusSession } from "../shared/start-session";
 import { clientInterface } from "./interface";
 import { SubprocessApi } from "./subprocess-api";
@@ -63,10 +64,21 @@ class ClientService implements XmlInterface<typeof clientInterface> {
       Subprocess: this.subprocessApi,
     });
 
-    import(importPath).then((module) => {
-      this.module = module;
-      this.server.ModuleLoadedAsync(this.appID).catch(printError);
-    });
+    import(importPath)
+      .then((module) => {
+        this.module = module;
+        this.server.ModuleLoadedAsync(this.appID).catch(printError);
+      })
+      .catch((error) => {
+        // try to parse the error
+        this.server
+          .LoadErrorAsync(this.appID, serializeError(error))
+          .catch((err) => {
+            this.server
+              .LoadErrorAsync(this.appID, serializeError(err))
+              .catch(() => {});
+          });
+      });
   }
 
   ActionError(actionID: string, error: string) {
@@ -92,14 +104,12 @@ class ClientService implements XmlInterface<typeof clientInterface> {
     }
 
     (async () => {
-      try {
-        const args = JSON.parse(arguments_);
-        const result = await fn(...args);
-        this.actionResult(actionID, result);
-      } catch (error) {
-        this.actionError(actionID, error);
-      }
-    })();
+      const args = JSON.parse(arguments_);
+      const result = await fn(...args);
+      this.actionResult(actionID, result);
+    })().catch((error) => {
+      this.actionError(actionID, error);
+    });
   }
 }
 

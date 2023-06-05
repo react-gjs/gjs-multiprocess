@@ -31,8 +31,6 @@ export function quux() {
 }
 
 export async function quuz(str) {
-  console.log("str", str);
-  const l = await Subprocess.invoke("loopback", str);
-  console.log("l", l);
+  const l = await Subprocess.invoke.loopback(str);
   return l;
 }

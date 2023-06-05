@@ -1,7 +1,5 @@
 {
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": ["@typescript-eslint"],
   "env": {
     "browser": true,
     "es2021": true
@@ -30,10 +28,7 @@
         "ignoreTemplateLiterals": true
       }
     ],
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
+    "linebreak-style": ["error", "unix"],
     "quotes": [
       "error",
       "double",
@@ -41,17 +36,15 @@
         "avoidEscape": true
       }
     ],
-    "semi": [
-      "error",
-      "always"
-    ],
+    "semi": ["error", "always"],
+    "@typescript-eslint/no-floating-promises": 2,
     "@typescript-eslint/consistent-type-imports": 2,
     "@typescript-eslint/consistent-type-exports": 2,
     "@typescript-eslint/member-delimiter-style": 2,
     "@typescript-eslint/no-confusing-non-null-assertion": 2,
     "@typescript-eslint/no-misused-new": 2,
     "@typescript-eslint/no-require-imports": 2,
-    "@typescript-eslint/prefer-for-of": 2,
+    "@typescript-eslint/prefer-for-of": 0,
     "@typescript-eslint/switch-exhaustiveness-check": 2,
     "@typescript-eslint/no-base-to-string": 2,
     "@typescript-eslint/prefer-nullish-coalescing": 1,
@@ -63,7 +56,6 @@
     "@typescript-eslint/unbound-method": 0,
     "@typescript-eslint/explicit-module-boundary-types": 0,
     "no-async-promise-executor": 0,
-    "@typescript-eslint/no-floating-promises": 0,
     "@typescript-eslint/no-empty-function": 0,
     "@typescript-eslint/no-namespace": 0,
     "@typescript-eslint/ban-ts-comment": 0,

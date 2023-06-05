@@ -1,6 +1,8 @@
+import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
 import type { XmlInterface } from "../shared/create-proxy";
 import { IdGenerator } from "../shared/id-generator";
+import path from "../shared/path";
 import { DBusSession } from "../shared/start-session";
 import { ClientController } from "./client-controller";
 import type { ClientFunctions } from "./client-proxy";
@@ -40,6 +42,11 @@ class Service implements XmlInterface<typeof serverInterface> {
     client?.notifyModuleLoaded();
   }
 
+  LoadError(clientName: string, error: string) {
+    const client = this.clients.get(clientName);
+    client?.notifyLoadError(error);
+  }
+
   ActionError(clientID: string, actionID: string, error: string) {
     const client = this.clients.get(clientID);
     client?.notifyActionError(actionID, error);
@@ -76,6 +83,13 @@ export const startServer = async (appID: string) => {
     entrypoint: string,
     mainProcessApi?: Record<string, (...args: any[]) => any>
   ) => {
+    if (
+      !entrypoint.startsWith("file://") &&
+      !entrypoint.startsWith("resource://")
+    ) {
+      entrypoint = "file://" + path.join(GLib.get_current_dir(), entrypoint);
+    }
+
     const uid = id.next();
 
     const client = service.addClient(uid);
