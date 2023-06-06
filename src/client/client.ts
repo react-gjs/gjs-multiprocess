@@ -3,16 +3,18 @@ import System from "system";
 import { serverInterface } from "../server/interface";
 import type { XmlInterface } from "../shared/create-proxy";
 import { createDBusProxy } from "../shared/create-proxy";
+import { DBusSession } from "../shared/dbus-session";
 import { printError } from "../shared/print-error";
 import { serializeError } from "../shared/serialize-error";
-import { DBusSession } from "../shared/start-session";
 import { clientInterface } from "./interface";
 import { SubprocessApi } from "./subprocess-api";
 
+let exitCode = 0;
+
 class ClientService implements XmlInterface<typeof clientInterface> {
-  subprocessApi;
-  module: any;
-  server;
+  public subprocessApi;
+  public module: any;
+  public server;
 
   constructor(
     private session: DBusSession,
@@ -30,7 +32,7 @@ class ClientService implements XmlInterface<typeof clientInterface> {
     this.subprocessApi = new SubprocessApi(appID, this.server);
   }
 
-  private actionError(actionID: string, error: any) {
+  private sendActionError(actionID: string, error: any) {
     this.server
       .ActionErrorAsync(
         this.appID,
@@ -48,18 +50,24 @@ class ClientService implements XmlInterface<typeof clientInterface> {
       .catch(printError);
   }
 
-  private actionResult(actionID: string, result: any) {
+  private sendActionResult(actionID: string, result: any) {
     this.server
       .ActionResultAsync(this.appID, actionID, JSON.stringify(result))
       .catch(printError);
   }
 
-  Terminate() {
+  private sendGetResult(actionID: string, result: any) {
+    this.server
+      .GetResultAsync(this.appID, actionID, JSON.stringify(result))
+      .catch(printError);
+  }
+
+  public Terminate() {
     this.session.close();
     imports.mainloop.quit("client");
   }
 
-  LoadImport(importPath: string) {
+  public LoadImport(importPath: string) {
     Object.assign(globalThis, {
       Subprocess: this.subprocessApi,
     });
@@ -81,23 +89,23 @@ class ClientService implements XmlInterface<typeof clientInterface> {
       });
   }
 
-  ActionError(actionID: string, error: string) {
+  public ActionError(actionID: string, error: string) {
     this.subprocessApi._notifyActionError(actionID, error);
   }
 
-  ActionResult(actionID: string, result: string) {
+  public ActionResult(actionID: string, result: string) {
     this.subprocessApi._notifyActionResult(actionID, result);
   }
 
-  Invoke(actionID: string, functionName: string, arguments_: string) {
+  public Invoke(actionID: string, exportName: string, arguments_: string) {
     if (!this.module) {
-      return this.actionError(actionID, new Error("Module not loaded."));
+      return this.sendActionError(actionID, new Error("Module not loaded."));
     }
 
-    const fn = this.module[functionName];
+    const fn = this.module[exportName];
 
     if (!fn || typeof fn !== "function") {
-      return this.actionError(
+      return this.sendActionError(
         actionID,
         new Error(`${String(fn)} cannot be called.`)
       );
@@ -106,23 +114,51 @@ class ClientService implements XmlInterface<typeof clientInterface> {
     (async () => {
       const args = JSON.parse(arguments_);
       const result = await fn(...args);
-      this.actionResult(actionID, result);
+      this.sendActionResult(actionID, result);
     })().catch((error) => {
-      this.actionError(actionID, error);
+      this.sendActionError(actionID, error);
     });
+  }
+
+  public Get(actionID: string, exportName: string) {
+    if (!this.module) {
+      printError(new Error("Module not loaded."));
+      return this.sendGetResult(actionID, null);
+    }
+
+    try {
+      const value = this.module[exportName];
+
+      if (typeof value === "function") {
+        throw new Error(
+          "Functions of subprocesses cannot be directly accessed. Use 'invoke()' instead."
+        );
+      }
+
+      this.sendGetResult(actionID, value ?? null);
+    } catch (error) {
+      printError(error);
+      this.sendGetResult(actionID, null);
+    }
   }
 }
 
 export const startClient = async (appID: string, parentProcessID: string) => {
-  const session = await DBusSession.start(appID);
-  const service = new ClientService(session, appID, parentProcessID);
+  try {
+    const session = await DBusSession.start(appID);
+    const service = new ClientService(session, appID, parentProcessID);
 
-  session.exportService(
-    Gio.DBusExportedObject.wrapJSObject(clientInterface(appID), service),
-    "/" + appID.replaceAll(".", "/")
-  );
+    session.exportService(
+      Gio.DBusExportedObject.wrapJSObject(clientInterface(appID), service),
+      "/" + appID.replaceAll(".", "/")
+    );
 
-  service.server.SubprocessReadyAsync(appID).catch(printError);
+    await service.server.SubprocessReadyAsync(appID);
+  } catch (error) {
+    exitCode = 1;
+    printError(error);
+    imports.mainloop.quit("client");
+  }
 };
 
 const main = () => {
@@ -147,7 +183,7 @@ const main = () => {
 
   imports.mainloop.run("client");
 
-  System.exit(0);
+  System.exit(exitCode);
 };
 
 main();

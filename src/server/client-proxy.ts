@@ -3,18 +3,57 @@ import type { createDBusProxy } from "../shared/create-proxy";
 import type { EventEmitter } from "../shared/event-emitter";
 import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
-import type { ClientEvents, InvokeResult } from "./client-controller";
+import type {
+  ClientEvents,
+  GetResult,
+  InvokeResult,
+} from "./client-controller";
 
 type ClientInterface = ReturnType<typeof clientInterface>;
 
-export type ClientFunctions = Record<string, (...args: any[]) => any>;
+type ValuesOf<T> = T[keyof T];
 
-export class ClientProxy<C extends ClientFunctions> {
+type KeyOfMethods<T> = ValuesOf<{
+  [K in keyof T as T[K] extends Function ? K : never]: K;
+}>;
+
+type KeyOfProperties<T> = ValuesOf<{
+  [K in keyof T as T[K] extends Function ? never : K]: K;
+}>;
+
+type Promisify<F> = F extends (...args: infer A) => infer R
+  ? (...args: A) => Promise<R>
+  : never;
+
+type InvokeProxy<C extends ClientModule> = {
+  [K in keyof C as C[K] extends Function ? K : never]: Promisify<C[K]>;
+};
+
+type Invoke<C extends ClientModule> = InvokeProxy<C> & {
+  <F extends KeyOfMethods<C>>(
+    functionName: F,
+    ...args: Parameters<C[F]>
+  ): Promise<ReturnType<C[F]>>;
+};
+
+type GetProxy<C extends ClientModule> = {
+  [K in keyof C as C[K] extends Function ? never : K]: Promise<C[K]>;
+};
+
+type Get<C extends ClientModule> = GetProxy<C> & {
+  <K extends KeyOfProperties<C>>(functionName: K): Promise<C[K]>;
+};
+
+export type ClientModule = Record<string, any>;
+
+export class ClientProxy<C extends ClientModule> {
   private id = new IdGenerator();
+  private state: "open" | "closed" = "open";
 
-  public invoke;
+  public invoke: Invoke<C>;
+  public get: Get<C>;
 
-  constructor(
+  public constructor(
     private emitter: EventEmitter<ClientEvents>,
     private client: ReturnType<
       ReturnType<typeof createDBusProxy<ClientInterface>>
@@ -27,22 +66,44 @@ export class ClientProxy<C extends ClientFunctions> {
     }
 
     this.invoke = new Proxy(invoke, {
-      get(_, functionName: any) {
-        return (...args: Parameters<C[keyof C]>) =>
-          invoke(functionName, ...args);
+      get(_, exportName: any) {
+        return (...args: Parameters<C[keyof C]>) => invoke(exportName, ...args);
       },
-    });
+    }) as any;
+
+    function get(exportName: string) {
+      return subprocess._get(exportName);
+    }
+
+    this.get = new Proxy(get, {
+      get(_, exportName: any) {
+        return get(exportName);
+      },
+    }) as any;
   }
 
-  terminate() {
-    this.client.TerminateSync();
+  private ensureOpen() {
+    if (this.state === "closed") {
+      throw new Error("Client has been terminated.");
+    }
   }
 
-  async _invoke<F extends keyof C>(
-    functionName: F,
+  public terminate() {
+    if (this.state === "closed") {
+      return;
+    }
+
+    this.state = "closed";
+    return this.client.TerminateSync();
+  }
+
+  private async _invoke<F extends keyof C>(
+    exportName: F,
     ...args: Parameters<C[F]>
   ): Promise<ReturnType<C[F]>> {
-    return new Promise(async (resolve, reject) => {
+    await this.ensureOpen();
+
+    return await new Promise(async (resolve, reject) => {
       const actionID = this.id.next();
 
       const onResult = (result: InvokeResult) => {
@@ -68,8 +129,40 @@ export class ClientProxy<C extends ClientFunctions> {
       this.emitter.on("invokeResult", onResult);
 
       this.client
-        .InvokeAsync(actionID, functionName as string, JSON.stringify(args))
-        .catch(printError);
+        .InvokeAsync(actionID, exportName as string, JSON.stringify(args))
+        .catch((err) => {
+          this.emitter.off("invokeResult", onResult);
+          printError(err);
+          reject(err);
+        });
+    });
+  }
+
+  private async _get<F extends keyof C>(exportName: F): Promise<C[F]> {
+    await this.ensureOpen();
+
+    return await new Promise(async (resolve, reject) => {
+      const actionID = this.id.next();
+
+      const onResult = (result: GetResult) => {
+        if (result.actionID === actionID) {
+          this.emitter.off("getResult", onResult);
+
+          if (result.result) {
+            resolve(JSON.parse(result.result));
+          } else {
+            reject(new Error(`Unable to access '${exportName as string}'`));
+          }
+        }
+      };
+
+      this.emitter.on("getResult", onResult);
+
+      this.client.GetAsync(actionID, exportName as string).catch((err) => {
+        this.emitter.off("getResult", onResult);
+        printError(err);
+        reject(err);
+      });
     });
   }
 }

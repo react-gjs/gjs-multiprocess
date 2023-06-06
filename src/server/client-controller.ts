@@ -4,7 +4,7 @@ import { clientInterface } from "../client/interface";
 import { createDBusProxy } from "../shared/create-proxy";
 import { EventEmitter } from "../shared/event-emitter";
 import { printError } from "../shared/print-error";
-import type { ClientFunctions } from "./client-proxy";
+import type { ClientModule } from "./client-proxy";
 import { ClientProxy } from "./client-proxy";
 
 // @ts-expect-error
@@ -24,11 +24,17 @@ export type InvokeResult =
       result?: undefined;
     };
 
+export type GetResult = {
+  actionID: string;
+  result: string;
+};
+
 export type ClientEvents = {
   isReady: [];
   moduleLoaded: [];
   loadError: [Error];
   invokeResult: [InvokeResult];
+  getResult: [GetResult];
 };
 
 export class ClientController {
@@ -37,10 +43,10 @@ export class ClientController {
   private serverApi: Map<string, (...args: any[]) => any> = new Map();
   private client;
   private proxy;
-  clientID;
+  public clientID;
 
-  constructor(appID: string, uid: string) {
-    this.clientID = appID + "client" + uid;
+  public constructor(appID: string, uid: string) {
+    this.clientID = appID + ".client" + uid;
 
     const ClientDBusProxy = createDBusProxy(clientInterface(this.clientID));
 
@@ -87,13 +93,17 @@ export class ClientController {
       .catch(printError);
   }
 
-  registerServerApi(api: Record<string, (...args: any[]) => any>) {
+  public registerServerApi(api: Record<string, (...args: any[]) => any>) {
     for (const [name, fn] of Object.entries(api)) {
       this.serverApi.set(name, fn);
     }
   }
 
-  invokeServerFunction(actionID: string, name: string, arguments_: string) {
+  public invokeServerFunction(
+    actionID: string,
+    name: string,
+    arguments_: string
+  ) {
     const fn = this.serverApi.get(name);
 
     if (!fn || typeof fn !== "function") {
@@ -112,7 +122,7 @@ export class ClientController {
     });
   }
 
-  loadImport(importPath: string) {
+  public loadImport(importPath: string) {
     return new Promise<void>((resolve, reject) => {
       const onLoad = () => {
         this.emitter.off("moduleLoaded", onLoad);
@@ -139,16 +149,16 @@ export class ClientController {
     });
   }
 
-  notifyIsReady() {
+  public notifyIsReady() {
     this.isReady = true;
     this.emitter.emit("isReady");
   }
 
-  notifyModuleLoaded() {
+  public notifyModuleLoaded() {
     this.emitter.emit("moduleLoaded");
   }
 
-  notifyLoadError(e: string) {
+  public notifyLoadError(e: string) {
     const serializedError = JSON.parse(e);
     const isObject =
       typeof serializedError === "object" && serializedError !== null;
@@ -163,21 +173,28 @@ export class ClientController {
     this.emitter.emit("loadError", error);
   }
 
-  notifyActionError(actionID: string, error: string) {
+  public notifyActionError(actionID: string, error: string) {
     this.emitter.emit("invokeResult", {
       actionID,
       error,
     });
   }
 
-  notifyActionResult(actionID: string, result: string) {
+  public notifyActionResult(actionID: string, result: string) {
     this.emitter.emit("invokeResult", {
       actionID,
       result,
     });
   }
 
-  getProxy<C extends ClientFunctions>() {
+  public notifyGetResult(actionID: string, result: string) {
+    this.emitter.emit("getResult", {
+      actionID,
+      result,
+    });
+  }
+
+  public getProxy<C extends ClientModule>() {
     return this.proxy as ClientProxy<C>;
   }
 }

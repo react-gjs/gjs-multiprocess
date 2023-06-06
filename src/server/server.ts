@@ -1,63 +1,66 @@
 import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
 import type { XmlInterface } from "../shared/create-proxy";
+import { DBusSession } from "../shared/dbus-session";
 import { IdGenerator } from "../shared/id-generator";
 import path from "../shared/path";
-import { DBusSession } from "../shared/start-session";
 import { ClientController } from "./client-controller";
-import type { ClientFunctions } from "./client-proxy";
+import type { ClientModule } from "./client-proxy";
 import { serverInterface } from "./interface";
 
 Object.defineProperty(globalThis, "Subprocess", {
-  get() {
-    throw new Error("Subprocess is not available from the main process.");
-  },
+  value: null,
 });
 
 class Service implements XmlInterface<typeof serverInterface> {
   private clients: Map<string, ClientController> = new Map();
 
-  constructor(private session: DBusSession, private appID: string) {}
+  public constructor(private appID: string) {}
 
-  addClient(uid: string) {
+  public addClient(uid: string) {
     const clientController = new ClientController(this.appID, uid);
     this.clients.set(clientController.clientID, clientController);
 
     return clientController;
   }
 
-  terminateAll() {
+  public terminateAll() {
     for (const client of this.clients.values()) {
       client.getProxy().terminate();
     }
   }
 
-  SubprocessReady(clientName: string) {
+  public SubprocessReady(clientName: string) {
     const client = this.clients.get(clientName);
     client?.notifyIsReady();
   }
 
-  ModuleLoaded(clientName: string) {
+  public ModuleLoaded(clientName: string) {
     const client = this.clients.get(clientName);
     client?.notifyModuleLoaded();
   }
 
-  LoadError(clientName: string, error: string) {
+  public LoadError(clientName: string, error: string) {
     const client = this.clients.get(clientName);
     client?.notifyLoadError(error);
   }
 
-  ActionError(clientID: string, actionID: string, error: string) {
+  public ActionError(clientID: string, actionID: string, error: string) {
     const client = this.clients.get(clientID);
     client?.notifyActionError(actionID, error);
   }
 
-  ActionResult(clientID: string, actionID: string, result: string) {
+  public ActionResult(clientID: string, actionID: string, result: string) {
     const client = this.clients.get(clientID);
     client?.notifyActionResult(actionID, result);
   }
 
-  Invoke(
+  public GetResult(clientID: string, actionID: string, result: string) {
+    const client = this.clients.get(clientID);
+    client?.notifyGetResult(actionID, result);
+  }
+
+  public Invoke(
     clientID: string,
     actionID: string,
     functionName: string,
@@ -70,7 +73,7 @@ class Service implements XmlInterface<typeof serverInterface> {
 
 export const startServer = async (appID: string) => {
   const session = await DBusSession.start(appID);
-  const service = new Service(session, appID);
+  const service = new Service(appID);
 
   session.exportService(
     Gio.DBusExportedObject.wrapJSObject(serverInterface(appID), service),
@@ -79,7 +82,7 @@ export const startServer = async (appID: string) => {
 
   const id = new IdGenerator();
 
-  const createClient = async <C extends ClientFunctions>(
+  const createClient = async <C extends ClientModule>(
     entrypoint: string,
     mainProcessApi?: Record<string, (...args: any[]) => any>
   ) => {

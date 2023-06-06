@@ -1,3 +1,5 @@
+import { microtask } from "./microtask";
+
 type EventTypes = Record<string, any[]>;
 
 export class EventEmitter<E extends EventTypes = Record<string, any[]>> {
@@ -6,7 +8,7 @@ export class EventEmitter<E extends EventTypes = Record<string, any[]>> {
   emit<EvKey extends keyof E>(event: EvKey, ...args: E[EvKey]) {
     const listeners = this.listeners.get(event) ?? [];
     listeners.forEach((listener) =>
-      setTimeout(() => {
+      microtask(() => {
         listener(...args);
       })
     );

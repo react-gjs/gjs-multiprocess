@@ -17,8 +17,12 @@ export const clientInterface = (name: string) =>
     </method>
     <method name="Invoke">
       <arg type="s" name="actionID"/>
-      <arg type="s" name="functionName"/>
+      <arg type="s" name="exportName"/>
       <arg type="s" name="arguments"/>
+    </method>
+    <method name="Get">
+      <arg type="s" name="actionID"/>
+      <arg type="s" name="exportName"/>
     </method>
   </interface>
 </node>

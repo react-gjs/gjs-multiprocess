@@ -6,55 +6,38 @@ import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
 
 declare global {
-  interface ParentProcessApi {}
+  interface MainProcessApi {}
 
   interface InvokeFunction {
-    <Name extends keyof ParentProcessApi>(
+    <Name extends keyof MainProcessApi>(
       functionName: Name,
-      args: Parameters<ParentProcessApi[Name]>
-    ): ReturnType<ParentProcessApi[Name]>;
+      args: Parameters<MainProcessApi[Name]>
+    ): ReturnType<MainProcessApi[Name]>;
   }
 
   type InvokeFunctionProxies = {
-    [Name in keyof ParentProcessApi]: (
+    [Name in keyof MainProcessApi]: (
       functionName: Name,
-      args: Parameters<ParentProcessApi[Name]>
-    ) => ReturnType<ParentProcessApi[Name]>;
+      args: Parameters<MainProcessApi[Name]>
+    ) => ReturnType<MainProcessApi[Name]>;
   };
 
   interface Subprocess {
     invoke: InvokeFunction & InvokeFunctionProxies;
   }
 
-  const Subprocess: undefined;
+  const Subprocess: null | Subprocess;
 }
 
 type ServerInterface = ReturnType<typeof serverInterface>;
 
 export class SubprocessApi {
-  static create(
-    appID: string,
-    server: ReturnType<ReturnType<typeof createDBusProxy<ServerInterface>>>
-  ) {
-    const instance = new SubprocessApi(appID, server);
-
-    function invoke(functionName: string, ...args: any[]) {
-      return instance._invoke(functionName, ...args);
-    }
-
-    return new Proxy(invoke, {
-      get(_, functionName: keyof SubprocessApi) {
-        return instance[functionName].bind(instance);
-      },
-    });
-  }
-
   private id = new IdGenerator();
   private _emitter = new EventEmitter<{ invokeResult: [InvokeResult] }>();
 
   public invoke;
 
-  constructor(
+  public constructor(
     private appID: string,
     private server: ReturnType<
       ReturnType<typeof createDBusProxy<ServerInterface>>
@@ -106,18 +89,22 @@ export class SubprocessApi {
           functionName as string,
           JSON.stringify(args)
         )
-        .catch(printError);
+        .catch((err) => {
+          this._emitter.off("invokeResult", onResult);
+          printError(err);
+          reject(err);
+        });
     });
   }
 
-  _notifyActionError(actionID: string, error: string) {
+  public _notifyActionError(actionID: string, error: string) {
     this._emitter.emit("invokeResult", {
       actionID,
       error,
     });
   }
 
-  _notifyActionResult(actionID: string, result: string) {
+  public _notifyActionResult(actionID: string, result: string) {
     this._emitter.emit("invokeResult", {
       actionID,
       result,

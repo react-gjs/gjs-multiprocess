@@ -28,6 +28,11 @@ export const serverInterface = (name: string) =>
       <arg type="s" name="functionName"/>
       <arg type="s" name="arguments"/>
     </method>
+    <method name="GetResult">
+      <arg type="s" name="clientName"/>
+      <arg type="s" name="actionID"/>
+      <arg type="s" name="result"/>
+    </method>
   </interface>
 </node>
 ` as const;

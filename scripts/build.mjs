@@ -16,6 +16,10 @@ async function main() {
       tsConfig: p("tsconfig.json"),
       formats: ["esm"],
       declarations: true,
+      compileVendors: "all",
+      preset: {
+        gjs: true,
+      },
     });
   } catch (e) {
     console.error(e);

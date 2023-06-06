@@ -34,3 +34,8 @@ export async function quuz(str) {
   const l = await Subprocess.invoke.loopback(str);
   return l;
 }
+
+export let internalCounter = 1;
+export function bumpInternalCounter() {
+  return internalCounter++;
+}
