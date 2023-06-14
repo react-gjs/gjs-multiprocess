@@ -39,3 +39,5 @@ export let internalCounter = 1;
 export function bumpInternalCounter() {
   return internalCounter++;
 }
+
+export const loopback = (v) => v;

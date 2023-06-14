@@ -1,9 +1,11 @@
 import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
 import { clientInterface } from "../client/interface";
+import { attempt } from "../shared/attempt";
 import { createDBusProxy } from "../shared/create-proxy";
 import { EventEmitter } from "../shared/event-emitter";
 import { printError } from "../shared/print-error";
+import { Serializer } from "../shared/serializer";
 import type { ClientModule } from "./client-proxy";
 import { ClientProxy } from "./client-proxy";
 
@@ -11,6 +13,10 @@ import { ClientProxy } from "./client-proxy";
 const fileUri = import.meta.url;
 const __filename = GLib.uri_parse(fileUri, GLib.UriFlags.NONE).get_path()!;
 const __dirname = GLib.path_get_dirname(__filename);
+
+const parentLocation = fileUri.startsWith("resource://")
+  ? "resource://" + GLib.path_get_dirname(__dirname)
+  : GLib.path_get_dirname(__dirname);
 
 export type InvokeResult =
   | {
@@ -54,7 +60,7 @@ export class ClientController {
       [
         "gjs",
         "-m",
-        GLib.path_get_dirname(__dirname) + "/client/client.mjs",
+        parentLocation + "/client/client.mjs",
         appID,
         this.clientID,
       ],
@@ -75,12 +81,12 @@ export class ClientController {
       .ActionErrorAsync(
         actionID,
         error instanceof Error
-          ? JSON.stringify({
+          ? Serializer.stringify({
               name: error.name,
               message: error.message,
               stack: error.stack,
             })
-          : JSON.stringify({
+          : Serializer.stringify({
               error: String(error),
             })
       )
@@ -89,7 +95,7 @@ export class ClientController {
 
   private actionResult(actionID: string, result: any) {
     this.client
-      .ActionResultAsync(actionID, JSON.stringify(result))
+      .ActionResultAsync(actionID, Serializer.stringify(result))
       .catch(printError);
   }
 
@@ -114,7 +120,7 @@ export class ClientController {
     }
 
     (async () => {
-      const args = JSON.parse(arguments_);
+      const args = Serializer.parse<any[]>(arguments_);
       const result = await fn(...args);
       this.actionResult(actionID, result);
     })().catch((error) => {
@@ -159,13 +165,17 @@ export class ClientController {
   }
 
   public notifyLoadError(e: string) {
-    const serializedError = JSON.parse(e);
+    const serializedError = attempt(() => Serializer.parse(e));
     const isObject =
       typeof serializedError === "object" && serializedError !== null;
-    const message = isObject
-      ? serializedError.message
-      : String(serializedError);
-    const stack = isObject ? serializedError.stack : undefined;
+    const message =
+      isObject && "message" in serializedError
+        ? (serializedError.message as string)
+        : String(serializedError);
+    const stack =
+      isObject && "stack" in serializedError
+        ? (serializedError.stack as string)
+        : undefined;
 
     const error = new Error(message);
     error.stack = stack;

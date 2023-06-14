@@ -235,9 +235,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ncpa0cpl/nodepack@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "@ncpa0cpl/nodepack@npm:2.2.0"
+"@ncpa0cpl/nodepack@npm:2.2.1":
+  version: 2.2.1
+  resolution: "@ncpa0cpl/nodepack@npm:2.2.1"
   dependencies:
     "@ncpa0cpl/node-worker-bridge": ^0.0.3
     "@ts-morph/bootstrap": ^0.19.0
@@ -251,7 +251,7 @@ __metadata:
   dependenciesMeta:
     json-to-ts:
       optional: true
-  checksum: adf00c49dce49e2687cff6889e097510700cba07cbab9330930c27a9ab2a8ad69bba270c9542685f94d64497783d932cc2f0f3ec71e26d5760058d2111e6e1bc
+  checksum: 31bf3564037b4971ee425e6c41616f12bd9fe3aad225b7f09cfdffdadcde3d306111cf7a0b9127834239416444d9370e64cf70ba1f92799a58cba81778232375
   languageName: node
   linkType: hard
 
@@ -326,6 +326,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash@npm:^4.14.195":
+  version: 4.14.195
+  resolution: "@types/lodash@npm:4.14.195"
+  checksum: 39b75ca635b3fa943d17d3d3aabc750babe4c8212485a4df166fe0516e39288e14b0c60afc6e21913cc0e5a84734633c71e617e2bd14eaa1cf51b8d7799c432e
+  languageName: node
+  linkType: hard
+
 "@types/mdast@npm:^3.0.0":
   version: 3.0.11
   resolution: "@types/mdast@npm:3.0.11"
@@ -346,6 +353,13 @@ __metadata:
   version: 7.5.0
   resolution: "@types/semver@npm:7.5.0"
   checksum: 0a64b9b9c7424d9a467658b18dd70d1d781c2d6f033096a6e05762d20ebbad23c1b69b0083b0484722aabf35640b78ccc3de26368bcae1129c87e9df028a22e2
+  languageName: node
+  linkType: hard
+
+"@types/serialize-javascript@npm:^5.0.2":
+  version: 5.0.2
+  resolution: "@types/serialize-javascript@npm:5.0.2"
+  checksum: eb14df7716b88740d6322e1c17863fa08350287d9594fae99e686aae9d584ac9d7f9e5498e06e20f5c292e214bc56a23cbf2a954ff804b97be6ff5b0af642ec8
   languageName: node
   linkType: hard
 
@@ -594,6 +608,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"base64-js@npm:^1.3.1":
+  version: 1.5.1
+  resolution: "base64-js@npm:1.5.1"
+  checksum: 669632eb3745404c2f822a18fc3a0122d2f9a7a13f7fb8b5823ee19d1d2ff9ee5b52c53367176ea4ad093c332fd5ab4bd0ebae5a8e27917a4105a4cfc86b1005
+  languageName: node
+  linkType: hard
+
 "binary-searching@npm:^2.0.5":
   version: 2.0.5
   resolution: "binary-searching@npm:2.0.5"
@@ -633,6 +654,16 @@ __metadata:
   dependencies:
     fill-range: ^7.0.1
   checksum: e2a8e769a863f3d4ee887b5fe21f63193a891c68b612ddb4b68d82d1b5f3ff9073af066c343e9867a393fe4c2555dcb33e89b937195feb9c1613d259edfcd459
+  languageName: node
+  linkType: hard
+
+"buffer@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "buffer@npm:6.0.3"
+  dependencies:
+    base64-js: ^1.3.1
+    ieee754: ^1.2.1
+  checksum: 5ad23293d9a731e4318e420025800b42bf0d264004c0286c8cc010af7a270c7a0f6522e84f54b9ad65cbd6db20b8badbfd8d2ebf4f80fa03dab093b89e68c3f9
   languageName: node
   linkType: hard
 
@@ -1395,9 +1426,12 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
   version: 0.0.0-use.local
   resolution: "gjs-multiprocess@workspace:."
   dependencies:
-    "@ncpa0cpl/nodepack": ^2.2.0
+    "@ncpa0cpl/nodepack": 2.2.1
+    "@types/lodash": ^4.14.195
+    "@types/serialize-javascript": ^5.0.2
     "@typescript-eslint/eslint-plugin": ^5.59.6
     "@typescript-eslint/parser": ^5.59.6
+    buffer: ^6.0.3
     esbuild: ^0.17.19
     eslint: ^8.40.0
     eslint-config-prettier: ^8.8.0
@@ -1405,9 +1439,11 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
     git-hook-tasks: ncpa0cpl/git-hook-tasks
     gjs-esm-types: ^0.0.4
     husky: ^8.0.3
+    lodash: ^4.17.21
     path-gjsify: ^1.0.0
     prettier: ^2.8.8
     prettier-plugin-jsdoc: ^0.4.2
+    serialize-javascript: ^6.0.1
     typescript: ^5.0.4
   languageName: unknown
   linkType: soft
@@ -1575,6 +1611,13 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
   bin:
     husky: lib/bin.js
   checksum: 837bc7e4413e58c1f2946d38fb050f5d7324c6f16b0fd66411ffce5703b294bd21429e8ba58711cd331951ee86ed529c5be4f76805959ff668a337dbfa82a1b0
+  languageName: node
+  linkType: hard
+
+"ieee754@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "ieee754@npm:1.2.1"
+  checksum: 5144c0c9815e54ada181d80a0b810221a253562422e7c6c3a60b1901154184f49326ec239d618c416c1c5945a2e197107aee8d986a3dd836b53dffefd99b5e7e
   languageName: node
   linkType: hard
 
@@ -2484,6 +2527,15 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
   languageName: node
   linkType: hard
 
+"randombytes@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "randombytes@npm:2.1.0"
+  dependencies:
+    safe-buffer: ^5.1.0
+  checksum: d779499376bd4cbb435ef3ab9a957006c8682f343f14089ed5f27764e4645114196e75b7f6abf1cbd84fd247c0cb0651698444df8c9bf30e62120fbbc52269d6
+  languageName: node
+  linkType: hard
+
 "regexp.prototype.flags@npm:^1.4.3":
   version: 1.5.0
   resolution: "regexp.prototype.flags@npm:1.5.0"
@@ -2563,6 +2615,13 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
   languageName: node
   linkType: hard
 
+"safe-buffer@npm:^5.1.0":
+  version: 5.2.1
+  resolution: "safe-buffer@npm:5.2.1"
+  checksum: b99c4b41fdd67a6aaf280fcd05e9ffb0813654894223afb78a31f14a19ad220bba8aba1cb14eddce1fcfb037155fe6de4e861784eb434f7d11ed58d1e70dd491
+  languageName: node
+  linkType: hard
+
 "safe-regex-test@npm:^1.0.0":
   version: 1.0.0
   resolution: "safe-regex-test@npm:1.0.0"
@@ -2582,6 +2641,15 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
   bin:
     semver: bin/semver.js
   checksum: d16dbedad53c65b086f79524b9ef766bf38670b2395bdad5c957f824dcc566b624988013564f4812bcace3f9d405355c3635e2007396a39d1bffc71cfec4a2fc
+  languageName: node
+  linkType: hard
+
+"serialize-javascript@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "serialize-javascript@npm:6.0.1"
+  dependencies:
+    randombytes: ^2.1.0
+  checksum: 3c4f4cb61d0893b988415bdb67243637333f3f574e9e9cc9a006a2ced0b390b0b3b44aef8d51c951272a9002ec50885eefdc0298891bc27eb2fe7510ea87dc4f
   languageName: node
   linkType: hard
 

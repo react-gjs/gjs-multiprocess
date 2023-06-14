@@ -3,6 +3,7 @@ import type { createDBusProxy } from "../shared/create-proxy";
 import type { EventEmitter } from "../shared/event-emitter";
 import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
+import { Serializer } from "../shared/serializer";
 import type {
   ClientEvents,
   GetResult,
@@ -108,33 +109,49 @@ export class ClientProxy<C extends ClientModule> {
 
       const onResult = (result: InvokeResult) => {
         if (result.actionID === actionID) {
-          this.emitter.off("invokeResult", onResult);
+          try {
+            this.emitter.off("invokeResult", onResult);
 
-          if (result.result) {
-            resolve(JSON.parse(result.result));
-          } else {
-            const e = JSON.parse(result.error!);
-            const error = new Error(e.message ?? e.error ?? "Unknown error");
-            if (e.name) {
-              error.name = e.name;
+            if (result.result) {
+              resolve(Serializer.parse(result.result));
+            } else {
+              const e = Serializer.parse<any>(result.error!);
+              const error = new Error(
+                e?.message ?? e?.error ?? "Unknown error"
+              );
+              if (e.name) {
+                error.name = e.name;
+              }
+              if (e.stack) {
+                error.stack = e.stack;
+              }
+              reject(error);
             }
-            if (e.stack) {
-              error.stack = e.stack;
-            }
-            reject(error);
+          } catch (err) {
+            reject(err);
           }
         }
       };
 
       this.emitter.on("invokeResult", onResult);
 
-      this.client
-        .InvokeAsync(actionID, exportName as string, JSON.stringify(args))
-        .catch((err) => {
-          this.emitter.off("invokeResult", onResult);
-          printError(err);
-          reject(err);
-        });
+      try {
+        this.client
+          .InvokeAsync(
+            actionID,
+            exportName as string,
+            Serializer.stringify(args)
+          )
+          .catch((err) => {
+            this.emitter.off("invokeResult", onResult);
+            printError(err);
+            reject(err);
+          });
+      } catch (err) {
+        this.emitter.off("invokeResult", onResult);
+        printError(err);
+        reject(err);
+      }
     });
   }
 
@@ -146,12 +163,16 @@ export class ClientProxy<C extends ClientModule> {
 
       const onResult = (result: GetResult) => {
         if (result.actionID === actionID) {
-          this.emitter.off("getResult", onResult);
+          try {
+            this.emitter.off("getResult", onResult);
 
-          if (result.result) {
-            resolve(JSON.parse(result.result));
-          } else {
-            reject(new Error(`Unable to access '${exportName as string}'`));
+            if (result.result) {
+              resolve(Serializer.parse(result.result));
+            } else {
+              reject(new Error(`Unable to access '${exportName as string}'`));
+            }
+          } catch (err) {
+            reject(err);
           }
         }
       };

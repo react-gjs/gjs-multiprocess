@@ -1,3 +1,6 @@
+import { attempt } from "./attempt";
+import { Serializer } from "./serializer";
+
 export const serializeError = (error: Error) => {
   const toParse: Record<string, any> = {};
 
@@ -10,5 +13,5 @@ export const serializeError = (error: Error) => {
     toParse.message = String(error);
   }
 
-  return JSON.stringify(toParse);
+  return attempt(() => Serializer.stringify(toParse)) ?? "{}";
 };

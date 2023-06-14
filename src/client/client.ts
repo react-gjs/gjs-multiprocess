@@ -6,6 +6,7 @@ import { createDBusProxy } from "../shared/create-proxy";
 import { DBusSession } from "../shared/dbus-session";
 import { printError } from "../shared/print-error";
 import { serializeError } from "../shared/serialize-error";
+import { Serializer } from "../shared/serializer";
 import { clientInterface } from "./interface";
 import { SubprocessApi } from "./subprocess-api";
 
@@ -38,12 +39,12 @@ class ClientService implements XmlInterface<typeof clientInterface> {
         this.appID,
         actionID,
         error instanceof Error
-          ? JSON.stringify({
+          ? Serializer.stringify({
               name: error.name,
               message: error.message,
               stack: error.stack,
             })
-          : JSON.stringify({
+          : Serializer.stringify({
               error: String(error),
             })
       )
@@ -52,13 +53,13 @@ class ClientService implements XmlInterface<typeof clientInterface> {
 
   private sendActionResult(actionID: string, result: any) {
     this.server
-      .ActionResultAsync(this.appID, actionID, JSON.stringify(result))
+      .ActionResultAsync(this.appID, actionID, Serializer.stringify(result))
       .catch(printError);
   }
 
   private sendGetResult(actionID: string, result: any) {
     this.server
-      .GetResultAsync(this.appID, actionID, JSON.stringify(result))
+      .GetResultAsync(this.appID, actionID, Serializer.stringify(result))
       .catch(printError);
   }
 
@@ -112,7 +113,7 @@ class ClientService implements XmlInterface<typeof clientInterface> {
     }
 
     (async () => {
-      const args = JSON.parse(arguments_);
+      const args = Serializer.parse<any[]>(arguments_);
       const result = await fn(...args);
       this.sendActionResult(actionID, result);
     })().catch((error) => {
