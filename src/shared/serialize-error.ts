@@ -1,7 +1,7 @@
 import { attempt } from "./attempt";
 import { Serializer } from "./serializer";
 
-export const serializeError = (error: Error) => {
+export const serializeError = (error: any) => {
   const toParse: Record<string, any> = {};
 
   if (error instanceof Error) {

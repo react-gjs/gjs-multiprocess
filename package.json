@@ -2,6 +2,7 @@
   "name": "gjs-multiprocess",
   "version": "0.0.1-alpha.0",
   "main": "./dist/esm/index.mjs",
+  "types": "./dist/esm/index.d.ts",
   "keywords": [],
   "repository": {
     "type": "git",

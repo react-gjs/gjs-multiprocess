@@ -22,18 +22,24 @@ function last<T>(arr: T[]): T | undefined {
 }
 
 function getOwnParent(parents: Parent[], value: Obj) {
-  const selfParent = parents.find((p) => Object.is(value, p.value));
-  return selfParent;
+  for (let i = parents.length - 1; i >= 0; i--) {
+    const p = parents[i]!;
+    if (Object.is(value, p.value)) {
+      return p;
+    }
+  }
 }
 
 function findCyclicRefs(value: Obj) {
   const cyclicReferences: CyclicReference[] = [];
 
   const traverse = (nextValue: Obj, parents: Parent[]) => {
-    const entries = Object.entries(nextValue);
+    const keys = Object.keys(nextValue);
 
-    for (let i = 0; i < entries.length; i++) {
-      const [key, value] = entries[i]!;
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i]!;
+      // @ts-expect-error
+      const value = nextValue[key]!;
 
       const parent = last(parents);
       const path = [...(parent?.path ?? []), key];

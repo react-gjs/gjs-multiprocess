@@ -4,6 +4,7 @@ import { clientInterface } from "../client/interface";
 import { attempt } from "../shared/attempt";
 import { createDBusProxy } from "../shared/create-proxy";
 import { EventEmitter } from "../shared/event-emitter";
+import path from "../shared/path";
 import { printError } from "../shared/print-error";
 import { Serializer } from "../shared/serializer";
 import type { ClientModule } from "./client-proxy";
@@ -43,12 +44,31 @@ export type ClientEvents = {
   getResult: [GetResult];
 };
 
+export class ClientLocation {
+  private static path = path.join(parentLocation, "/client/client.mjs");
+
+  /**
+   * Set the location of the client script. By default client
+   * script is located in `dist/client/client.mjs` within this
+   * package.
+   */
+  static setClientLocation(path: string | ((dirname: string) => string)) {
+    ClientLocation.path = typeof path === "function" ? path(__dirname) : path;
+  }
+
+  /** @internal */
+  static _getClientLocation() {
+    return ClientLocation.path;
+  }
+}
+
 export class ClientController {
   private isReady = false;
   private emitter = new EventEmitter<ClientEvents>();
   private serverApi: Map<string, (...args: any[]) => any> = new Map();
   private client;
   private proxy;
+  private subprocess;
   public clientID;
 
   public constructor(appID: string, uid: string) {
@@ -56,14 +76,8 @@ export class ClientController {
 
     const ClientDBusProxy = createDBusProxy(clientInterface(this.clientID));
 
-    Gio.Subprocess.new(
-      [
-        "gjs",
-        "-m",
-        parentLocation + "/client/client.mjs",
-        appID,
-        this.clientID,
-      ],
+    this.subprocess = Gio.Subprocess.new(
+      ["gjs", "-m", ClientLocation._getClientLocation(), appID, this.clientID],
       Gio.SubprocessFlags.NONE
     );
 
@@ -73,7 +87,7 @@ export class ClientController {
       "/" + this.clientID.replaceAll(".", "/")
     );
 
-    this.proxy = new ClientProxy(this.emitter, this.client);
+    this.proxy = new ClientProxy(this.emitter, this.client, this.subprocess);
   }
 
   private actionError(actionID: string, error: any) {

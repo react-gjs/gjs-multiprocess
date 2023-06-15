@@ -18,8 +18,7 @@ declare global {
 
   type InvokeFunctionProxies = {
     [Name in keyof MainProcessApi]: (
-      functionName: Name,
-      args: Parameters<MainProcessApi[Name]>
+      ...args: Parameters<MainProcessApi[Name]>
     ) => ReturnType<MainProcessApi[Name]>;
   };
 

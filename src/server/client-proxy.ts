@@ -1,3 +1,4 @@
+import type Gio from "gi://Gio?version=2.0";
 import type { clientInterface } from "../client/interface";
 import type { createDBusProxy } from "../shared/create-proxy";
 import type { EventEmitter } from "../shared/event-emitter";
@@ -50,6 +51,7 @@ export type ClientModule = Record<string, any>;
 export class ClientProxy<C extends ClientModule> {
   private id = new IdGenerator();
   private state: "open" | "closed" = "open";
+  private hasExited = false;
 
   public invoke: Invoke<C>;
   public get: Get<C>;
@@ -58,12 +60,18 @@ export class ClientProxy<C extends ClientModule> {
     private emitter: EventEmitter<ClientEvents>,
     private client: ReturnType<
       ReturnType<typeof createDBusProxy<ClientInterface>>
-    >
+    >,
+    private subprocess: Gio.Subprocess
   ) {
-    const subprocess = this;
+    subprocess.wait_async(null, (_, res) => {
+      subprocess.wait_check_finish(res);
+      this.hasExited = true;
+    });
+
+    const cproxy = this;
 
     function invoke(functionName: string, ...args: Parameters<C[keyof C]>) {
-      return subprocess._invoke(functionName, ...args);
+      return cproxy._invoke(functionName, ...args);
     }
 
     this.invoke = new Proxy(invoke, {
@@ -73,7 +81,7 @@ export class ClientProxy<C extends ClientModule> {
     }) as any;
 
     function get(exportName: string) {
-      return subprocess._get(exportName);
+      return cproxy._get(exportName);
     }
 
     this.get = new Proxy(get, {
@@ -81,6 +89,13 @@ export class ClientProxy<C extends ClientModule> {
         return get(exportName);
       },
     }) as any;
+
+    const onLoadError = () => {
+      this.state = "closed";
+      this.emitter.off("loadError", onLoadError);
+    };
+
+    this.emitter.on("loadError", onLoadError);
   }
 
   private ensureOpen() {
@@ -89,13 +104,35 @@ export class ClientProxy<C extends ClientModule> {
     }
   }
 
-  public terminate() {
-    if (this.state === "closed") {
-      return;
+  public async terminate() {
+    if (this.state !== "closed") {
+      this.state = "closed";
+      await this.client.TerminateAsync();
     }
 
-    this.state = "closed";
-    return this.client.TerminateSync();
+    return new Promise<void>((resolve) => {
+      if (this.hasExited) {
+        resolve();
+        return;
+      }
+
+      const start = Date.now();
+
+      setInterval(() => {
+        if (this.hasExited) {
+          resolve();
+        }
+
+        if (Date.now() - start > 500) {
+          try {
+            this.subprocess.force_exit();
+          } catch (err) {
+            //
+          }
+          resolve();
+        }
+      }, 50);
+    });
   }
 
   private async _invoke<F extends keyof C>(

@@ -1,4 +1,3 @@
-import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
 import type { XmlInterface } from "../shared/create-proxy";
 import { DBusSession } from "../shared/dbus-session";
@@ -24,10 +23,10 @@ class Service implements XmlInterface<typeof serverInterface> {
     return clientController;
   }
 
-  public terminateAll() {
-    for (const client of this.clients.values()) {
-      client.getProxy().terminate();
-    }
+  public async terminateAll() {
+    await Promise.all(
+      Array.from(this.clients.values()).map((c) => c.getProxy().terminate())
+    );
   }
 
   public SubprocessReady(clientName: string) {
@@ -84,26 +83,26 @@ export const startServer = async (appID: string) => {
 
   const createClient = async <C extends ClientModule>(
     entrypoint: string,
-    mainProcessApi?: Record<string, (...args: any[]) => any>
+    mainProcessApi?: object
   ) => {
     if (
       !entrypoint.startsWith("file://") &&
       !entrypoint.startsWith("resource://")
     ) {
-      entrypoint = "file://" + path.join(GLib.get_current_dir(), entrypoint);
+      entrypoint = "file://" + path.resolve(entrypoint);
     }
 
     const uid = id.next();
 
     const client = service.addClient(uid);
-    if (mainProcessApi) client.registerServerApi(mainProcessApi);
+    if (mainProcessApi) client.registerServerApi(mainProcessApi as any);
     await client.loadImport(entrypoint);
 
     return client.getProxy<C>();
   };
 
-  const close = () => {
-    service.terminateAll();
+  const close = async () => {
+    await service.terminateAll();
     session.close();
   };
 

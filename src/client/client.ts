@@ -4,13 +4,12 @@ import { serverInterface } from "../server/interface";
 import type { XmlInterface } from "../shared/create-proxy";
 import { createDBusProxy } from "../shared/create-proxy";
 import { DBusSession } from "../shared/dbus-session";
+import { Mainloop } from "../shared/mainloop";
 import { printError } from "../shared/print-error";
 import { serializeError } from "../shared/serialize-error";
 import { Serializer } from "../shared/serializer";
 import { clientInterface } from "./interface";
 import { SubprocessApi } from "./subprocess-api";
-
-let exitCode = 0;
 
 class ClientService implements XmlInterface<typeof clientInterface> {
   public subprocessApi;
@@ -64,8 +63,8 @@ class ClientService implements XmlInterface<typeof clientInterface> {
   }
 
   public Terminate() {
+    Mainloop.quit();
     this.session.close();
-    imports.mainloop.quit("client");
   }
 
   public LoadImport(importPath: string) {
@@ -73,21 +72,25 @@ class ClientService implements XmlInterface<typeof clientInterface> {
       Subprocess: this.subprocessApi,
     });
 
-    import(importPath)
-      .then((module) => {
+    (async () => {
+      try {
+        const module = await import(importPath);
         this.module = module;
         this.server.ModuleLoadedAsync(this.appID).catch(printError);
-      })
-      .catch((error) => {
-        // try to parse the error
+      } catch (error) {
         this.server
           .LoadErrorAsync(this.appID, serializeError(error))
-          .catch((err) => {
+          .catch((err) =>
             this.server
               .LoadErrorAsync(this.appID, serializeError(err))
-              .catch(() => {});
-          });
-      });
+              .catch(() => {})
+              .finally(() => {
+                Mainloop.quit(1);
+                this.session.close();
+              })
+          );
+      }
+    })().catch(() => {});
   }
 
   public ActionError(actionID: string, error: string) {
@@ -156,9 +159,8 @@ export const startClient = async (appID: string, parentProcessID: string) => {
 
     await service.server.SubprocessReadyAsync(appID);
   } catch (error) {
-    exitCode = 1;
     printError(error);
-    imports.mainloop.quit("client");
+    Mainloop.quit(1);
   }
 };
 
@@ -182,7 +184,7 @@ const main = () => {
     startClient(clientName, parentProcessID).catch(printError);
   });
 
-  imports.mainloop.run("client");
+  const exitCode = Mainloop.start("client");
 
   System.exit(exitCode);
 };
