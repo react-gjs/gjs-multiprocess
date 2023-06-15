@@ -3,6 +3,7 @@ import type { XmlInterface } from "../shared/create-proxy";
 import { DBusSession } from "../shared/dbus-session";
 import { IdGenerator } from "../shared/id-generator";
 import path from "../shared/path";
+import { RefKeeper } from "../shared/ref-keeper";
 import { ClientController } from "./client-controller";
 import type { ClientModule } from "./client-proxy";
 import { serverInterface } from "./interface";
@@ -73,11 +74,15 @@ class Service implements XmlInterface<typeof serverInterface> {
 export const startServer = async (appID: string) => {
   const session = await DBusSession.start(appID);
   const service = new Service(appID);
-
-  session.exportService(
-    Gio.DBusExportedObject.wrapJSObject(serverInterface(appID), service),
-    "/" + appID.replaceAll(".", "/")
+  const dbusObject = Gio.DBusExportedObject.wrapJSObject(
+    serverInterface(appID),
+    service
   );
+
+  RefKeeper.ref(dbusObject);
+  RefKeeper.ref(service);
+
+  session.exportService(dbusObject, "/" + appID.replaceAll(".", "/"));
 
   const id = new IdGenerator();
 

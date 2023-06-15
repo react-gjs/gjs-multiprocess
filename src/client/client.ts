@@ -6,6 +6,7 @@ import { createDBusProxy } from "../shared/create-proxy";
 import { DBusSession } from "../shared/dbus-session";
 import { Mainloop } from "../shared/mainloop";
 import { printError } from "../shared/print-error";
+import { RefKeeper } from "../shared/ref-keeper";
 import { serializeError } from "../shared/serialize-error";
 import { Serializer } from "../shared/serializer";
 import { clientInterface } from "./interface";
@@ -151,11 +152,15 @@ export const startClient = async (appID: string, parentProcessID: string) => {
   try {
     const session = await DBusSession.start(appID);
     const service = new ClientService(session, appID, parentProcessID);
-
-    session.exportService(
-      Gio.DBusExportedObject.wrapJSObject(clientInterface(appID), service),
-      "/" + appID.replaceAll(".", "/")
+    const dbusobject = Gio.DBusExportedObject.wrapJSObject(
+      clientInterface(appID),
+      service
     );
+
+    RefKeeper.ref(dbusobject);
+    RefKeeper.ref(service);
+
+    session.exportService(dbusobject, "/" + appID.replaceAll(".", "/"));
 
     await service.server.SubprocessReadyAsync(appID);
   } catch (error) {
