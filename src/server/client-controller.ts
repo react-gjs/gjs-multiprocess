@@ -114,8 +114,8 @@ export class ClientController {
   }
 
   public registerServerApi(api: Record<string, (...args: any[]) => any>) {
-    for (const [name, fn] of Object.entries(api)) {
-      this.serverApi.set(name, fn);
+    for (const key of Object.keys(api)) {
+      this.serverApi.set(key, (...args: any[]) => api[key]!(...args));
     }
   }
 

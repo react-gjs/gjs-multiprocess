@@ -55,6 +55,30 @@ export const startServer = async (appID: string | DBusConnection) => {
   };
 
   return {
+    /**
+     * Spawns a new client process (aka worker).
+     *
+     * Optionally a dictionary of methods can be provided, client
+     * will be able to call the via the `Subprocess` global
+     * object.
+     *
+     * When using TypeScript, method definitions can be added to
+     * the `Subprocess` object by extending the `MainProcessApi`
+     * interface:
+     *
+     * @example
+     *   declare global {
+     *     interface MainProcessApi {
+     *       myMethodProvidedByMainProcess: (
+     *         arg1: string
+     *       ) => void;
+     *     }
+     *   }
+     *
+     *   Subprocess.invoke.myMethodProvidedByMainProcess(
+     *     "foo"
+     *   );
+     */
     createClient,
     close,
   };
