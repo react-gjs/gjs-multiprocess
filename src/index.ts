@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import "./client/subprocess-api";
 export { ClientLocation } from "./server/client-controller";
 export type { ClientProxy } from "./server/client-proxy";

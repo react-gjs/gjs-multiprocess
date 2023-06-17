@@ -1442,6 +1442,7 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
     path-gjsify: ^1.0.0
     prettier: ^2.8.8
     prettier-plugin-jsdoc: ^0.4.2
+    reflect-metadata: ^0.1.13
     serialize-javascript: ^6.0.1
     typescript: ^5.1.3
   languageName: unknown
@@ -2532,6 +2533,13 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
   dependencies:
     safe-buffer: ^5.1.0
   checksum: d779499376bd4cbb435ef3ab9a957006c8682f343f14089ed5f27764e4645114196e75b7f6abf1cbd84fd247c0cb0651698444df8c9bf30e62120fbbc52269d6
+  languageName: node
+  linkType: hard
+
+"reflect-metadata@npm:^0.1.13":
+  version: 0.1.13
+  resolution: "reflect-metadata@npm:0.1.13"
+  checksum: 798d379a7b6f6455501145419505c97dd11cbc23857a386add2b9ef15963ccf15a48d9d15507afe01d4cd74116df8a213247200bac00320bd7c11ddeaa5e8fb4
   languageName: node
   linkType: hard
 

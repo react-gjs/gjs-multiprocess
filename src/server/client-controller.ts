@@ -1,6 +1,6 @@
 import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
-import { clientInterface } from "../client/interface";
+import { ClientService } from "../client/service";
 import { attempt } from "../shared/attempt";
 import { createDBusProxy } from "../shared/create-proxy";
 import { EventEmitter } from "../shared/event-emitter";
@@ -74,7 +74,7 @@ export class ClientController {
   public constructor(appID: string, uid: string) {
     this.clientID = appID + ".client" + uid;
 
-    const ClientDBusProxy = createDBusProxy(clientInterface(this.clientID));
+    const ClientDBusProxy = createDBusProxy(this.clientID, ClientService);
 
     this.subprocess = Gio.Subprocess.new(
       ["gjs", "-m", ClientLocation._getClientLocation(), appID, this.clientID],

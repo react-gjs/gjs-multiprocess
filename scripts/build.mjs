@@ -26,7 +26,13 @@ async function main() {
       tsConfig: p("tsconfig.json"),
       formats: ["esm"],
       declarations: true,
-      compileVendors: ["path-gjsify", "serialize-javascript", "lodash"],
+      decoratorsMetadata: true,
+      compileVendors: [
+        "path-gjsify",
+        "serialize-javascript",
+        "lodash",
+        "reflect-metadata",
+      ],
       replaceImports: {
         randombytes: p("src/shared/random-bytes.ts"),
       },

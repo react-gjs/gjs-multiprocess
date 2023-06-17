@@ -6,6 +6,8 @@
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "downlevelIteration": true,
     "strict": true,
     "noUnusedLocals": true,
@@ -13,12 +15,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": [
-      "./node_modules/gjs-esm-types",
-      "./node_modules/@types"
-    ]
+    "typeRoots": ["./node_modules/gjs-esm-types", "./node_modules/@types"]
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

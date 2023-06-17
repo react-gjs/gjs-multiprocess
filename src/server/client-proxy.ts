@@ -1,6 +1,6 @@
 import type Gio from "gi://Gio?version=2.0";
-import type { clientInterface } from "../client/interface";
-import type { createDBusProxy } from "../shared/create-proxy";
+import type { ClientService } from "../client/service";
+import type { InterfaceOf } from "../shared/dbus-decorators/type-utils";
 import type { EventEmitter } from "../shared/event-emitter";
 import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
@@ -11,7 +11,7 @@ import type {
   InvokeResult,
 } from "./client-controller";
 
-type ClientInterface = ReturnType<typeof clientInterface>;
+type ClientInterface = InterfaceOf<ClientService>;
 
 type ValuesOf<T> = T[keyof T];
 
@@ -58,9 +58,7 @@ export class ClientProxy<C extends ClientModule> {
 
   public constructor(
     private emitter: EventEmitter<ClientEvents>,
-    private client: ReturnType<
-      ReturnType<typeof createDBusProxy<ClientInterface>>
-    >,
+    private client: ClientInterface,
     private subprocess: Gio.Subprocess
   ) {
     subprocess.wait_async(null, (_, res) => {

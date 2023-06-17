@@ -1,5 +1,8 @@
 import Gio from "gi://Gio?version=2.0";
 import type { DBusConnection } from "../server/server";
+import { compileInterface } from "./dbus-decorators/dbus-interface";
+import { getConstructor } from "./get-constructor";
+import { References } from "./ref-keeper";
 
 export class DBusSession {
   static async start(
@@ -22,6 +25,7 @@ export class DBusSession {
   private name!: string;
   private sessionID?: number;
   private connection!: Gio.DBusConnection;
+  private cleanup = () => {};
 
   private constructor() {}
 
@@ -39,7 +43,6 @@ export class DBusSession {
         Gio.BusNameOwnerFlags.NONE,
         (connection: Gio.DBusConnection) => {
           this.connection = connection;
-          console.log("name:", this.connection);
           resolve();
         },
         name_acquired_closure,
@@ -52,11 +55,31 @@ export class DBusSession {
     return this.name;
   }
 
-  public exportService(service: Gio.DBusExportedObject, path: string) {
-    service.export(this.connection, path);
+  public exportService(service: object) {
+    const serviceConstructor = getConstructor(service);
+    const interfaceSignature = compileInterface(this.name, serviceConstructor);
+
+    const dbusExportedObject = Gio.DBusExportedObject.wrapJSObject(
+      interfaceSignature,
+      service
+    );
+
+    References.ref(dbusExportedObject);
+    References.ref(service);
+
+    dbusExportedObject.export(
+      this.connection,
+      "/" + this.name.replaceAll(".", "/")
+    );
+
+    this.cleanup = () => {
+      References.unref(dbusExportedObject);
+      References.unref(service);
+    };
   }
 
   public close() {
     if (this.sessionID != null) Gio.bus_unown_name(this.sessionID);
+    this.cleanup();
   }
 }

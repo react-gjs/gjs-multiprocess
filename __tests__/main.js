@@ -15,40 +15,11 @@ async function main() {
     const serverApi = {
       loopback: (str) => str + str,
     };
-
     /** @type {ClientProxy} */
     const client1 = await server.createClient(
       "./__tests__/worker.js",
       serverApi
     );
-
-    // /** @type {ClientProxy} */
-    // const client2 = await server.createClient(
-    //   "file:///home/owner/Documents/gjs-multiprocess/__tests__/worker.js",
-    //   serverApi
-    // );
-
-    // /** @type {ClientProxy} */
-    // const client3 = await server.createClient(
-    //   "file:///home/owner/Documents/gjs-multiprocess/__tests__/worker.js",
-    //   serverApi
-    // );
-
-    // /** @type {ClientProxy} */
-    // const client4 = await server.createClient(
-    //   "file:///home/owner/Documents/gjs-multiprocess/__tests__/worker.js",
-    //   serverApi
-    // );
-
-    // const longs = await Promise.all([
-    //   client1.invoke("bumpInternalCounter"),
-    //   client1.invoke.bumpInternalCounter(),
-    //   client1.invoke.bumpInternalCounter(),
-    //   client2.invoke.bumpInternalCounter(),
-    //   client2.invoke.bumpInternalCounter(),
-    //   client3.invoke.bumpInternalCounter(),
-    //   client4.invoke.bumpInternalCounter(),
-    // ]);
 
     const obj = {
       foo: [1, 2, 3],
@@ -60,16 +31,8 @@ async function main() {
         obj: null,
       },
     };
-
     obj.qux.obj = obj;
     obj.foo[3] = obj.qux;
-
-    // const counters = await Promise.all([
-    //   client1.get("internalCounter"),
-    //   client2.get.internalCounter,
-    //   client3.get("internalCounter"),
-    //   client4.get.internalCounter,
-    // ]);
 
     const loopedObj = await client1.invoke.loopback(obj);
 

@@ -1,6 +1,6 @@
 import type { InvokeResult } from "../server/client-controller";
-import type { serverInterface } from "../server/interface";
-import type { createDBusProxy } from "../shared/create-proxy";
+import type { ServerService } from "../server/service";
+import type { InterfaceOf } from "../shared/dbus-decorators/type-utils";
 import { EventEmitter } from "../shared/event-emitter";
 import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
@@ -29,7 +29,7 @@ declare global {
   const Subprocess: null | Subprocess;
 }
 
-type ServerInterface = ReturnType<typeof serverInterface>;
+type ServerInterface = InterfaceOf<ServerService>;
 
 export class SubprocessApi {
   private id = new IdGenerator();
@@ -37,12 +37,7 @@ export class SubprocessApi {
 
   public invoke;
 
-  public constructor(
-    private appID: string,
-    private server: ReturnType<
-      ReturnType<typeof createDBusProxy<ServerInterface>>
-    >
-  ) {
+  public constructor(private appID: string, private server: ServerInterface) {
     const subprocess = this;
 
     function invoke(functionName: string, ...args: any[]) {
