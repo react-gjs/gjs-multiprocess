@@ -13,13 +13,13 @@ declare global {
     <Name extends keyof MainProcessApi>(
       functionName: Name,
       args: Parameters<MainProcessApi[Name]>
-    ): ReturnType<MainProcessApi[Name]>;
+    ): Promise<ReturnType<MainProcessApi[Name]>>;
   }
 
   type InvokeFunctionProxies = {
     [Name in keyof MainProcessApi]: (
       ...args: Parameters<MainProcessApi[Name]>
-    ) => ReturnType<MainProcessApi[Name]>;
+    ) => Promise<ReturnType<MainProcessApi[Name]>>;
   };
 
   interface Subprocess {
