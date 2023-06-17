@@ -1,7 +1,9 @@
-export class RefKeeper {
+export class References {
   static {
-    Object.defineProperty(globalThis, "__gest_refs", {
-      value: RefKeeper,
+    Object.defineProperty(globalThis, "__multiprocess_refs", {
+      value: References,
+      configurable: false,
+      writable: false,
     });
   }
 

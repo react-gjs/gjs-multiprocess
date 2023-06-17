@@ -1,17 +1,26 @@
 import Gio from "gi://Gio?version=2.0";
+import type { DBusConnection } from "../server/server";
 
 export class DBusSession {
   static async start(
-    appID: string,
+    appID: string | DBusConnection,
     name_acquired_closure: (() => void) | null = null,
     name_lost_closure: (() => void) | null = null
   ) {
-    const session = new DBusSession();
-    await session._init(appID, name_acquired_closure, name_lost_closure);
-    return session;
+    if (typeof appID === "string") {
+      const session = new DBusSession();
+      await session._init(appID, name_acquired_closure, name_lost_closure);
+      return session;
+    } else {
+      const session = new DBusSession();
+      session.name = appID.name;
+      session.connection = appID.connection;
+      return session;
+    }
   }
 
-  private sessionID!: number;
+  private name!: string;
+  private sessionID?: number;
   private connection!: Gio.DBusConnection;
 
   private constructor() {}
@@ -21,6 +30,8 @@ export class DBusSession {
     name_acquired_closure: (() => void) | null = null,
     name_lost_closure: (() => void) | null = null
   ) {
+    this.name = appID;
+
     await new Promise<void>((resolve) => {
       this.sessionID = Gio.bus_own_name(
         Gio.BusType.SESSION,
@@ -28,6 +39,7 @@ export class DBusSession {
         Gio.BusNameOwnerFlags.NONE,
         (connection: Gio.DBusConnection) => {
           this.connection = connection;
+          console.log("name:", this.connection);
           resolve();
         },
         name_acquired_closure,
@@ -36,11 +48,15 @@ export class DBusSession {
     });
   }
 
+  public getName() {
+    return this.name;
+  }
+
   public exportService(service: Gio.DBusExportedObject, path: string) {
     service.export(this.connection, path);
   }
 
   public close() {
-    Gio.bus_unown_name(this.sessionID);
+    if (this.sessionID != null) Gio.bus_unown_name(this.sessionID);
   }
 }

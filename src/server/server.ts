@@ -3,13 +3,15 @@ import type { XmlInterface } from "../shared/create-proxy";
 import { DBusSession } from "../shared/dbus-session";
 import { IdGenerator } from "../shared/id-generator";
 import path from "../shared/path";
-import { RefKeeper } from "../shared/ref-keeper";
+import { References } from "../shared/ref-keeper";
 import { ClientController } from "./client-controller";
 import type { ClientModule } from "./client-proxy";
 import { serverInterface } from "./interface";
 
 Object.defineProperty(globalThis, "Subprocess", {
   value: null,
+  configurable: false,
+  writable: false,
 });
 
 class Service implements XmlInterface<typeof serverInterface> {
@@ -71,18 +73,32 @@ class Service implements XmlInterface<typeof serverInterface> {
   }
 }
 
-export const startServer = async (appID: string) => {
+export type DBusConnection = {
+  connection: Gio.DBusConnection;
+  name: string;
+};
+
+/**
+ * @param appID Can be either a DBus name, in which case a new
+ *   DBus connection will be created, or and object containing a
+ *   DBus connection and a name that was used to create it.
+ */
+export const startServer = async (appID: string | DBusConnection) => {
   const session = await DBusSession.start(appID);
-  const service = new Service(appID);
+
+  const service = new Service(session.getName());
   const dbusObject = Gio.DBusExportedObject.wrapJSObject(
-    serverInterface(appID),
+    serverInterface(session.getName()),
     service
   );
 
-  RefKeeper.ref(dbusObject);
-  RefKeeper.ref(service);
+  References.ref(dbusObject);
+  References.ref(service);
 
-  session.exportService(dbusObject, "/" + appID.replaceAll(".", "/"));
+  session.exportService(
+    dbusObject,
+    "/" + session.getName().replaceAll(".", "/")
+  );
 
   const id = new IdGenerator();
 
@@ -109,6 +125,9 @@ export const startServer = async (appID: string) => {
   const close = async () => {
     await service.terminateAll();
     session.close();
+
+    References.unref(dbusObject);
+    References.unref(service);
   };
 
   return {

@@ -6,7 +6,7 @@ import { createDBusProxy } from "../shared/create-proxy";
 import { DBusSession } from "../shared/dbus-session";
 import { Mainloop } from "../shared/mainloop";
 import { printError } from "../shared/print-error";
-import { RefKeeper } from "../shared/ref-keeper";
+import { References } from "../shared/ref-keeper";
 import { serializeError } from "../shared/serialize-error";
 import { Serializer } from "../shared/serializer";
 import { clientInterface } from "./interface";
@@ -157,15 +157,15 @@ export const startClient = async (appID: string, parentProcessID: string) => {
       service
     );
 
-    RefKeeper.ref(dbusobject);
-    RefKeeper.ref(service);
+    References.ref(dbusobject);
+    References.ref(service);
 
     session.exportService(dbusobject, "/" + appID.replaceAll(".", "/"));
 
     await service.server.SubprocessReadyAsync(appID);
   } catch (error) {
-    printError(error);
     Mainloop.quit(1);
+    printError(error);
   }
 };
 
@@ -185,13 +185,16 @@ const main = () => {
     return;
   }
 
-  setTimeout(() => {
-    startClient(clientName, parentProcessID).catch(printError);
-  });
+  Mainloop.start()
+    .then((exitCode) => {
+      System.exit(exitCode);
+    })
+    .catch((err) => {
+      printError(err);
+      System.exit(1);
+    });
 
-  const exitCode = Mainloop.start("client");
-
-  System.exit(exitCode);
+  startClient(clientName, parentProcessID).catch(printError);
 };
 
 main();

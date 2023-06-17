@@ -1,28 +1,27 @@
-const { mainloop } = imports;
+import GLib from "gi://GLib?version=2.0";
+
+type GMainLoop = GLib.MainLoop & {
+  runAsync(): Promise<void>;
+};
 
 export class Mainloop {
-  private static _name = "default";
+  private static _gMainLoop = new GLib.MainLoop(null, false) as GMainLoop;
   private static _isRunning = false;
   private static _exitCode = 0;
 
-  static start(name?: string): number {
+  static start() {
     if (this._isRunning) {
       throw new Error("Mainloop is already running.");
     }
 
-    if (name) {
-      this._name = name;
-    }
-
     this._isRunning = true;
-    mainloop.run(this._name);
 
-    return this._exitCode;
+    return this._gMainLoop.runAsync().then(() => this._exitCode);
   }
 
   static quit(exitCode = 0) {
     this._exitCode = exitCode;
     this._isRunning = false;
-    mainloop.quit(this._name);
+    this._gMainLoop.quit();
   }
 }
