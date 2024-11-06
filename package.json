@@ -1,6 +1,6 @@
 {
   "name": "gjs-multiprocess",
-  "version": "0.0.1-alpha.3",
+  "version": "0.0.1-alpha.4",
   "main": "./dist/esm/index.mjs",
   "types": "./dist/types/index.d.ts",
   "keywords": [],
@@ -10,6 +10,12 @@
   },
   "description": "Multiprocessing for GJS scripts.",
   "license": "MIT",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
   "author": {
     "name": "Szymon Bretner",
     "email": "szymonb21@gmail.com"
@@ -44,6 +50,5 @@
     "reflect-metadata": "^0.1.13",
     "serialize-javascript": "^6.0.1",
     "typescript": "^5.1.3"
-  },
-  "packageManager": "yarn@3.5.1"
+  }
 }
