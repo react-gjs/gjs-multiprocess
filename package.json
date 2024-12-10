@@ -1,6 +1,6 @@
 {
   "name": "gjs-multiprocess",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "main": "./dist/esm/index.mjs",
   "types": "./dist/types/index.d.ts",
   "keywords": [],

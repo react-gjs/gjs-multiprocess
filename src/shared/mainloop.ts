@@ -5,7 +5,7 @@ type GMainLoop = GLib.MainLoop & {
 };
 
 export class Mainloop {
-  static getMainLoop(): GMainLoop {
+  private static getMainLoop(): GMainLoop {
     const loop = new GLib.MainLoop(null, false) as GMainLoop;
     if (typeof loop.runAsync === "undefined") {
       Object.defineProperty(loop, "runAsync", {
@@ -15,7 +15,7 @@ export class Mainloop {
     return loop;
   }
 
-  private static _gMainLoop = new GLib.MainLoop(null, false) as GMainLoop;
+  private static _gMainLoop = Mainloop.getMainLoop();
   private static _isRunning = false;
   private static _exitCode = 0;
 
