@@ -5,6 +5,16 @@ type GMainLoop = GLib.MainLoop & {
 };
 
 export class Mainloop {
+  static getMainLoop(): GMainLoop {
+    const loop = new GLib.MainLoop(null, false) as GMainLoop;
+    if (typeof loop.runAsync === "undefined") {
+      Object.defineProperty(loop, "runAsync", {
+        value: runAsyncPolyfill,
+      });
+    }
+    return loop;
+  }
+
   private static _gMainLoop = new GLib.MainLoop(null, false) as GMainLoop;
   private static _isRunning = false;
   private static _exitCode = 0;
@@ -24,4 +34,19 @@ export class Mainloop {
     this._isRunning = false;
     this._gMainLoop.quit();
   }
+}
+
+function runAsyncPolyfill(this: GLib.MainLoop) {
+  const p = new Promise<void>((resolve, reject) => {
+    GLib.idle_add(-10000, () => {
+      try {
+        resolve(this.run());
+      } catch (e) {
+        reject(e);
+      }
+      return GLib.SOURCE_REMOVE;
+    });
+  });
+
+  return p;
 }
