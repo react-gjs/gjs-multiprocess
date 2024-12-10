@@ -9,11 +9,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const p = (loc) => path.resolve(__dirname, "..", loc);
 
 const polyfillUrlBanner = /* js */ `
-if(typeof URL === "undefined") {
-  class URL {};
-  Object.defineProperty(globalThis, "URL", {
-    value: URL,
-  });
+class mpfix_URL {};
+const multiprocess_fix = {
+  get URL() {
+    if(typeof URL === "undefined") {
+      return mpfix_URL;
+    } else {
+      return URL;
+    }
+  }
 }
 `.trim();
 
@@ -39,17 +43,18 @@ async function main() {
       preset: {
         gjs: true,
       },
+      banner: {
+        "serialize-javascript": {
+          text: polyfillUrlBanner,
+          loader: "copy",
+        },
+      },
+      esbuildOptions: {
+        define: {
+          URL: "multiprocess_fix.URL",
+        },
+      },
     });
-
-    const sjModule = await readFile(
-      p("dist/esm/_vendors/serialize-javascript.mjs"),
-      "utf-8"
-    );
-
-    await writeFile(
-      p("dist/esm/_vendors/serialize-javascript.mjs"),
-      `${polyfillUrlBanner}\n${sjModule}`
-    );
   } catch (e) {
     console.error(e);
     process.exit(1);
