@@ -4,11 +4,11 @@ export type Initializer = <T extends object>(thisInstance: T) => void;
 
 const InitializersMetadata = Metadata.defineForClass(
   "initializers",
-  (): Initializer[] => []
+  (): Initializer[] => [],
 );
 
 export const WithInitializers = <T extends object>(
-  proto: new (...args: any[]) => T
+  proto: new(...args: any[]) => T,
 ) => {
   return new Proxy(proto, {
     construct: (_, args) => {

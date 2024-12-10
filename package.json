@@ -21,11 +21,9 @@
     "email": "szymonb21@gmail.com"
   },
   "scripts": {
-    "fix:lint": "eslint --fix .",
-    "fix:prettier": "prettier -w ./src",
+    "fix:fmt": "dprint fmt",
     "test:jest": "jest --coverage",
-    "test:lint": "eslint .",
-    "test:prettier": "prettier -c ./src",
+    "test:fmt": "dprint check",
     "test:tsc": "tsc --noEmit",
     "build": "node ./scripts/build.mjs"
   },
@@ -34,6 +32,7 @@
     "@types/lodash": "^4.14.195",
     "@types/serialize-javascript": "^5.0.4",
     "buffer": "^6.0.3",
+    "dprint": "^0.47.6",
     "esbuild": "^0.24.0",
     "git-hook-tasks": "ncpa0cpl/git-hook-tasks",
     "gjs-esm-types": "^0.0.4",

@@ -11,8 +11,9 @@ function getRandomValues(buf: Buffer) {
 }
 
 function randomBytes(size: number, cb?: (_: null, bytes: Buffer) => void) {
-  if (size > MAX_UINT32)
+  if (size > MAX_UINT32) {
     throw new RangeError("requested too many random bytes");
+  }
   const bytes = Buffer.allocUnsafe(size);
   if (size > 0) {
     if (size > MAX_BYTES) {
@@ -24,7 +25,7 @@ function randomBytes(size: number, cb?: (_: null, bytes: Buffer) => void) {
     }
   }
   if (typeof cb === "function") {
-    return microtask(function () {
+    return microtask(function() {
       cb(null, bytes);
     });
   }

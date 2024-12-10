@@ -12,7 +12,7 @@ declare global {
   interface InvokeFunction {
     <Name extends keyof MainProcessApi>(
       functionName: Name,
-      args: Parameters<MainProcessApi[Name]>
+      args: Parameters<MainProcessApi[Name]>,
     ): Promise<ReturnType<MainProcessApi[Name]>>;
   }
 
@@ -65,7 +65,7 @@ export class SubprocessApi {
             } else {
               const e = Serializer.parse<any>(result.error!);
               const error = new Error(
-                e?.message ?? e?.error ?? "Unknown error"
+                e?.message ?? e?.error ?? "Unknown error",
               );
               if (e.name) {
                 error.name = e.name;
@@ -89,7 +89,7 @@ export class SubprocessApi {
             this.appID,
             actionID,
             functionName as string,
-            Serializer.stringify(args)
+            Serializer.stringify(args),
           )
           .catch((err) => {
             this._emitter.off("invokeResult", onResult);

@@ -8,7 +8,7 @@ export type MetadataReference<T> = {
 export class Metadata {
   public static defineForClass<T>(
     name: string,
-    getDefaultValue: (proto: any) => T
+    getDefaultValue: (proto: any) => T,
   ): MetadataReference<T> {
     return {
       get: (proto: any) => {
@@ -33,7 +33,7 @@ export class Metadata {
   public static defineForProperty<T>(
     name: string,
     propertyKey: string,
-    defaultValue: T | ((proto: any) => T)
+    defaultValue: T | ((proto: any) => T),
   ): MetadataReference<T> {
     return {
       get: (proto: any) => {

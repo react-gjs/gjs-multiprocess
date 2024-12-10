@@ -75,7 +75,7 @@ function extGet(obj: Obj, path: string): any {
 
 export function replaceCyclicRefs<O extends Obj>(
   obj: O,
-  replacer: (cyclicRef: CyclicReference, obj: O) => unknown
+  replacer: (cyclicRef: CyclicReference, obj: O) => unknown,
 ) {
   const clonedObj = _.cloneDeep(obj);
   const cyclicReferences = findCyclicRefs(clonedObj);

@@ -4,7 +4,7 @@ import type { InterfaceOf } from "./dbus-decorators/type-utils";
 
 export const createDBusProxy = <T extends object>(
   name: string,
-  interfaceService: new (...args: any[]) => T
+  interfaceService: new(...args: any[]) => T,
 ) => {
   const interfaceSignature = compileInterface(name, interfaceService);
   return Gio.DBusProxy.makeProxyWrapper<InterfaceOf<T>>(interfaceSignature);

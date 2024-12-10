@@ -16,7 +16,7 @@ export class EventEmitter<E extends EventTypes = Record<string, any[]>> {
 
   on<EvKey extends keyof E>(
     event: EvKey,
-    listener: (...args: E[EvKey]) => void
+    listener: (...args: E[EvKey]) => void,
   ) {
     const listeners = this.listeners.get(event) ?? [];
     listeners.push(listener);
@@ -25,7 +25,7 @@ export class EventEmitter<E extends EventTypes = Record<string, any[]>> {
 
   off<EvKey extends keyof E>(
     event: EvKey,
-    listener: (...args: E[EvKey]) => void
+    listener: (...args: E[EvKey]) => void,
   ) {
     const listeners = this.listeners.get(event) ?? [];
     const index = listeners.indexOf(listener);

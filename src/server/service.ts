@@ -15,7 +15,7 @@ export class ServerService {
 
   public async terminateAll() {
     await Promise.all(
-      Array.from(this.clients.values()).map((c) => c.getProxy().terminate())
+      Array.from(this.clients.values()).map((c) => c.getProxy().terminate()),
     );
   }
 
@@ -60,7 +60,7 @@ export class ServerService {
     clientID: string,
     actionID: string,
     functionName: string,
-    arguments_: string
+    arguments_: string,
   ) {
     const client = this.clients.get(clientID);
     client?.invokeServerFunction(actionID, functionName, arguments_);

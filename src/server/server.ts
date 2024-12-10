@@ -31,11 +31,11 @@ export const startServer = async (appID: string | DBusConnection) => {
 
   const createClient = async <C extends ClientModule>(
     entrypoint: string,
-    mainProcessApi?: object
+    mainProcessApi?: object,
   ) => {
     if (
-      !entrypoint.startsWith("file://") &&
-      !entrypoint.startsWith("resource://")
+      !entrypoint.startsWith("file://")
+      && !entrypoint.startsWith("resource://")
     ) {
       entrypoint = "file://" + path.resolve(entrypoint);
     }

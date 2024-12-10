@@ -10,7 +10,7 @@ export type DBusExportedMethod = {
 
 const ExportedMethods = Metadata.defineForClass(
   "dbus:exported",
-  (): DBusExportedMethod[] => []
+  (): DBusExportedMethod[] => [],
 );
 
 const isCapitalized = (str: string) => str[0] === str[0]!.toUpperCase();
@@ -18,7 +18,7 @@ const isCapitalized = (str: string) => str[0] === str[0]!.toUpperCase();
 export const Export: MethodDecorator = (proto, key) => {
   if (typeof key !== "string") {
     throw new Error(
-      "Export decorator can only be used on methods with a string names."
+      "Export decorator can only be used on methods with a string names.",
     );
   }
 
@@ -31,8 +31,7 @@ export const Export: MethodDecorator = (proto, key) => {
   methodList.push({
     name: key,
     getArguments: () => {
-      const methodArgTypes: MethodArguments =
-        Reflect.getMetadata("design:paramtypes", proto, key) ?? [];
+      const methodArgTypes: MethodArguments = Reflect.getMetadata("design:paramtypes", proto, key) ?? [];
       return methodArgTypes;
     },
   });
@@ -50,7 +49,7 @@ export const getExportedMethods = (target: any) => {
 
 export const compileInterface = (
   name: string,
-  constructor: new (...args: any[]) => object
+  constructor: new(...args: any[]) => object,
 ) => {
   const exportedMethods = getExportedMethods(constructor.prototype);
 
@@ -58,19 +57,21 @@ export const compileInterface = (
 
   for (const method of exportedMethods) {
     const signature = /* xml */ `<method name="${method.name}">
-${method
-  .getArguments()
-  .map((argType, i) => {
-    switch (argType) {
-      case String:
-        return /* xml */ `  <arg type="s" name="arg${i}"/>`;
-      case Number:
-        return /* xml */ `  <arg type="i" name="arg${i}"/>`;
-      case Boolean:
-        return /* xml */ `  <arg type="b" name="arg${i}"/>`;
+${
+      method
+        .getArguments()
+        .map((argType, i) => {
+          switch (argType) {
+            case String:
+              return /* xml */ `  <arg type="s" name="arg${i}"/>`;
+            case Number:
+              return /* xml */ `  <arg type="i" name="arg${i}"/>`;
+            case Boolean:
+              return /* xml */ `  <arg type="b" name="arg${i}"/>`;
+          }
+        })
+        .join("\n")
     }
-  })
-  .join("\n")}
 </method>`;
 
     methodSignatures.push(signature);

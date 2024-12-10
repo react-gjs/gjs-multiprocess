@@ -1,5 +1,5 @@
-import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
+import GLib from "gi://GLib?version=2.0";
 import { ClientService } from "../client/service";
 import { attempt } from "../shared/attempt";
 import { createDBusProxy } from "../shared/create-proxy";
@@ -21,15 +21,15 @@ const parentLocation = fileUri.startsWith("resource://")
 
 export type InvokeResult =
   | {
-      actionID: string;
-      result: string;
-      error?: undefined;
-    }
+    actionID: string;
+    result: string;
+    error?: undefined;
+  }
   | {
-      actionID: string;
-      error: string;
-      result?: undefined;
-    };
+    actionID: string;
+    error: string;
+    result?: undefined;
+  };
 
 export type GetResult = {
   actionID: string;
@@ -78,13 +78,13 @@ export class ClientController {
 
     this.subprocess = Gio.Subprocess.new(
       ["gjs", "-m", ClientLocation._getClientLocation(), appID, this.clientID],
-      Gio.SubprocessFlags.NONE
+      Gio.SubprocessFlags.NONE,
     );
 
     this.client = ClientDBusProxy(
       Gio.DBus.session,
       this.clientID,
-      "/" + this.clientID.replaceAll(".", "/")
+      "/" + this.clientID.replaceAll(".", "/"),
     );
 
     this.proxy = new ClientProxy(this.emitter, this.client, this.subprocess);
@@ -96,13 +96,13 @@ export class ClientController {
         actionID,
         error instanceof Error
           ? Serializer.stringify({
-              name: error.name,
-              message: error.message,
-              stack: error.stack,
-            })
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          })
           : Serializer.stringify({
-              error: String(error),
-            })
+            error: String(error),
+          }),
       )
       .catch(printError);
   }
@@ -122,14 +122,14 @@ export class ClientController {
   public invokeServerFunction(
     actionID: string,
     name: string,
-    arguments_: string
+    arguments_: string,
   ) {
     const fn = this.serverApi.get(name);
 
     if (!fn || typeof fn !== "function") {
       return this.actionError(
         actionID,
-        new Error(`${String(fn)} cannot be called.`)
+        new Error(`${String(fn)} cannot be called.`),
       );
     }
 
@@ -180,16 +180,13 @@ export class ClientController {
 
   public notifyLoadError(e: string) {
     const serializedError = attempt(() => Serializer.parse(e));
-    const isObject =
-      typeof serializedError === "object" && serializedError !== null;
-    const message =
-      isObject && "message" in serializedError
-        ? (serializedError.message as string)
-        : String(serializedError);
-    const stack =
-      isObject && "stack" in serializedError
-        ? (serializedError.stack as string)
-        : undefined;
+    const isObject = typeof serializedError === "object" && serializedError !== null;
+    const message = isObject && "message" in serializedError
+      ? (serializedError.message as string)
+      : String(serializedError);
+    const stack = isObject && "stack" in serializedError
+      ? (serializedError.stack as string)
+      : undefined;
 
     const error = new Error(message);
     error.stack = stack;

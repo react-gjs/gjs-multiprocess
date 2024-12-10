@@ -5,6 +5,69 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@dprint/darwin-arm64@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/darwin-arm64@npm:0.47.6"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@dprint/darwin-x64@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/darwin-x64@npm:0.47.6"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@dprint/linux-arm64-glibc@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/linux-arm64-glibc@npm:0.47.6"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@dprint/linux-arm64-musl@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/linux-arm64-musl@npm:0.47.6"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@dprint/linux-riscv64-glibc@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/linux-riscv64-glibc@npm:0.47.6"
+  conditions: os=linux & cpu=riscv64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@dprint/linux-x64-glibc@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/linux-x64-glibc@npm:0.47.6"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@dprint/linux-x64-musl@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/linux-x64-musl@npm:0.47.6"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@dprint/win32-arm64@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/win32-arm64@npm:0.47.6"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@dprint/win32-x64@npm:0.47.6":
+  version: 0.47.6
+  resolution: "@dprint/win32-x64@npm:0.47.6"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@esbuild/aix-ppc64@npm:0.24.0":
   version: 0.24.0
   resolution: "@esbuild/aix-ppc64@npm:0.24.0"
@@ -721,6 +784,44 @@ clify.js@ncpa0cpl/clify.js:
   languageName: node
   linkType: hard
 
+"dprint@npm:^0.47.6":
+  version: 0.47.6
+  resolution: "dprint@npm:0.47.6"
+  dependencies:
+    "@dprint/darwin-arm64": 0.47.6
+    "@dprint/darwin-x64": 0.47.6
+    "@dprint/linux-arm64-glibc": 0.47.6
+    "@dprint/linux-arm64-musl": 0.47.6
+    "@dprint/linux-riscv64-glibc": 0.47.6
+    "@dprint/linux-x64-glibc": 0.47.6
+    "@dprint/linux-x64-musl": 0.47.6
+    "@dprint/win32-arm64": 0.47.6
+    "@dprint/win32-x64": 0.47.6
+  dependenciesMeta:
+    "@dprint/darwin-arm64":
+      optional: true
+    "@dprint/darwin-x64":
+      optional: true
+    "@dprint/linux-arm64-glibc":
+      optional: true
+    "@dprint/linux-arm64-musl":
+      optional: true
+    "@dprint/linux-riscv64-glibc":
+      optional: true
+    "@dprint/linux-x64-glibc":
+      optional: true
+    "@dprint/linux-x64-musl":
+      optional: true
+    "@dprint/win32-arm64":
+      optional: true
+    "@dprint/win32-x64":
+      optional: true
+  bin:
+    dprint: bin.js
+  checksum: 245df42f691556ea20ddd9b4a34aa23de4372adeb044676bf70484392fe22ad9b2cb8a19d3697fbd3b0d0b98082748c59a8a5417acd31d96b100be8e00eafd5a
+  languageName: node
+  linkType: hard
+
 "eastasianwidth@npm:^0.2.0":
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
@@ -1118,6 +1219,7 @@ git-hook-tasks@ncpa0cpl/git-hook-tasks:
     "@types/lodash": ^4.14.195
     "@types/serialize-javascript": ^5.0.4
     buffer: ^6.0.3
+    dprint: ^0.47.6
     esbuild: ^0.24.0
     git-hook-tasks: ncpa0cpl/git-hook-tasks
     gjs-esm-types: ^0.0.4

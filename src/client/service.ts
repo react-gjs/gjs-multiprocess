@@ -17,14 +17,14 @@ export class ClientService {
   constructor(
     private session: DBusSession,
     private appID: string,
-    parentProcessID: string
+    parentProcessID: string,
   ) {
     const ServerProxy = createDBusProxy(parentProcessID, ServerService);
 
     this.server = ServerProxy(
       Gio.DBus.session,
       parentProcessID,
-      "/" + parentProcessID.replaceAll(".", "/")
+      "/" + parentProcessID.replaceAll(".", "/"),
     );
 
     this.subprocessApi = new SubprocessApi(appID, this.server);
@@ -37,13 +37,13 @@ export class ClientService {
         actionID,
         error instanceof Error
           ? Serializer.stringify({
-              name: error.name,
-              message: error.message,
-              stack: error.stack,
-            })
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          })
           : Serializer.stringify({
-              error: String(error),
-            })
+            error: String(error),
+          }),
       )
       .catch(printError);
   }
@@ -114,7 +114,7 @@ export class ClientService {
     if (!fn || typeof fn !== "function") {
       return this.sendActionError(
         actionID,
-        new Error(`${String(fn)} cannot be called.`)
+        new Error(`${String(fn)} cannot be called.`),
       );
     }
 
@@ -139,7 +139,7 @@ export class ClientService {
 
       if (typeof value === "function") {
         throw new Error(
-          "Functions of subprocesses cannot be directly accessed. Use 'invoke()' instead."
+          "Functions of subprocesses cannot be directly accessed. Use 'invoke()' instead.",
         );
       }
 

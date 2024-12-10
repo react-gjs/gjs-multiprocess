@@ -5,26 +5,25 @@ import type { EventEmitter } from "../shared/event-emitter";
 import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
 import { Serializer } from "../shared/serializer";
-import type {
-  ClientEvents,
-  GetResult,
-  InvokeResult,
-} from "./client-controller";
+import type { ClientEvents, GetResult, InvokeResult } from "./client-controller";
 
 type ClientInterface = InterfaceOf<ClientService>;
 
 type ValuesOf<T> = T[keyof T];
 
-type KeyOfMethods<T> = ValuesOf<{
-  [K in keyof T as T[K] extends Function ? K : never]: K;
-}>;
+type KeyOfMethods<T> = ValuesOf<
+  {
+    [K in keyof T as T[K] extends Function ? K : never]: K;
+  }
+>;
 
-type KeyOfProperties<T> = ValuesOf<{
-  [K in keyof T as T[K] extends Function ? never : K]: K;
-}>;
+type KeyOfProperties<T> = ValuesOf<
+  {
+    [K in keyof T as T[K] extends Function ? never : K]: K;
+  }
+>;
 
-type Promisify<F> = F extends (...args: infer A) => infer R
-  ? (...args: A) => Promise<R>
+type Promisify<F> = F extends (...args: infer A) => infer R ? (...args: A) => Promise<R>
   : never;
 
 type InvokeProxy<C extends ClientModule> = {
@@ -59,7 +58,7 @@ export class ClientProxy<C extends ClientModule> {
   public constructor(
     private emitter: EventEmitter<ClientEvents>,
     private client: ClientInterface,
-    private subprocess: Gio.Subprocess
+    private subprocess: Gio.Subprocess,
   ) {
     subprocess.wait_async(null, (_, res) => {
       subprocess.wait_check_finish(res);
@@ -152,7 +151,7 @@ export class ClientProxy<C extends ClientModule> {
             } else {
               const e = Serializer.parse<any>(result.error!);
               const error = new Error(
-                e?.message ?? e?.error ?? "Unknown error"
+                e?.message ?? e?.error ?? "Unknown error",
               );
               if (e.name) {
                 error.name = e.name;
@@ -175,7 +174,7 @@ export class ClientProxy<C extends ClientModule> {
           .InvokeAsync(
             actionID,
             exportName as string,
-            Serializer.stringify(args)
+            Serializer.stringify(args),
           )
           .catch((err) => {
             this.emitter.off("invokeResult", onResult);

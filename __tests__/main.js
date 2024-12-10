@@ -18,7 +18,7 @@ async function main() {
     /** @type {ClientProxy} */
     const client1 = await server.createClient(
       "./__tests__/worker.js",
-      serverApi
+      serverApi,
     );
 
     const obj = {
@@ -39,7 +39,7 @@ async function main() {
     console.log(
       replaceCyclicRefs(loopedObj, (ref) => {
         return `${["$", ref.firstPath].join(".")}`;
-      })
+      }),
     );
   } catch (e) {
     console.log("Worker failed with:", e);

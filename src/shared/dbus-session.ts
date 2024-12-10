@@ -8,7 +8,7 @@ export class DBusSession {
   static async start(
     appID: string | DBusConnection,
     name_acquired_closure: (() => void) | null = null,
-    name_lost_closure: (() => void) | null = null
+    name_lost_closure: (() => void) | null = null,
   ) {
     if (typeof appID === "string") {
       const session = new DBusSession();
@@ -32,7 +32,7 @@ export class DBusSession {
   private async _init(
     appID: string,
     name_acquired_closure: (() => void) | null = null,
-    name_lost_closure: (() => void) | null = null
+    name_lost_closure: (() => void) | null = null,
   ) {
     this.name = appID;
 
@@ -46,7 +46,7 @@ export class DBusSession {
           resolve();
         },
         name_acquired_closure,
-        name_lost_closure
+        name_lost_closure,
       );
     });
   }
@@ -61,7 +61,7 @@ export class DBusSession {
 
     const dbusExportedObject = Gio.DBusExportedObject.wrapJSObject(
       interfaceSignature,
-      service
+      service,
     );
 
     References.ref(dbusExportedObject);
@@ -69,7 +69,7 @@ export class DBusSession {
 
     dbusExportedObject.export(
       this.connection,
-      "/" + this.name.replaceAll(".", "/")
+      "/" + this.name.replaceAll(".", "/"),
     );
 
     this.cleanup = () => {
