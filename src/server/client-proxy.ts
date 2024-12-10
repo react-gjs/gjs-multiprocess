@@ -5,25 +5,26 @@ import type { EventEmitter } from "../shared/event-emitter";
 import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
 import { Serializer } from "../shared/serializer";
-import type { ClientEvents, GetResult, InvokeResult } from "./client-controller";
+import type {
+  ClientEvents,
+  GetResult,
+  InvokeResult,
+} from "./client-controller";
 
 type ClientInterface = InterfaceOf<ClientService>;
 
 type ValuesOf<T> = T[keyof T];
 
-type KeyOfMethods<T> = ValuesOf<
-  {
-    [K in keyof T as T[K] extends Function ? K : never]: K;
-  }
->;
+type KeyOfMethods<T> = ValuesOf<{
+  [K in keyof T as T[K] extends Function ? K : never]: K;
+}>;
 
-type KeyOfProperties<T> = ValuesOf<
-  {
-    [K in keyof T as T[K] extends Function ? never : K]: K;
-  }
->;
+type KeyOfProperties<T> = ValuesOf<{
+  [K in keyof T as T[K] extends Function ? never : K]: K;
+}>;
 
-type Promisify<F> = F extends (...args: infer A) => infer R ? (...args: A) => Promise<R>
+type Promisify<F> = F extends (...args: infer A) => infer R
+  ? (...args: A) => Promise<R>
   : never;
 
 type InvokeProxy<C extends ClientModule> = {
@@ -51,6 +52,7 @@ export class ClientProxy<C extends ClientModule> {
   private id = new IdGenerator();
   private state: "open" | "closed" = "open";
   private hasExited = false;
+  private exitCode: number | null = null;
 
   public invoke: Invoke<C>;
   public get: Get<C>;
@@ -63,6 +65,8 @@ export class ClientProxy<C extends ClientModule> {
     subprocess.wait_async(null, (_, res) => {
       subprocess.wait_check_finish(res);
       this.hasExited = true;
+      this.exitCode = subprocess.get_exit_status();
+      this.emitter.emit("processExited", this.exitCode);
     });
 
     const cproxy = this;
@@ -129,6 +133,30 @@ export class ClientProxy<C extends ClientModule> {
           resolve();
         }
       }, 50);
+    });
+  }
+
+  /**
+   * Add a callback that will be called once the subprocess exits.
+   */
+  public async onExit(
+    cb: (
+      exitcode: number,
+      stdout: Gio.InputStream | null,
+      stderr: Gio.InputStream | null,
+    ) => void,
+  ) {
+    if (this.hasExited) {
+      const stdoutStream = this.subprocess.get_stdout_pipe();
+      const stderrStream = this.subprocess.get_stderr_pipe();
+      cb(this.exitCode!, stdoutStream, stderrStream);
+      return;
+    }
+
+    this.emitter.on("processExited", (ecode) => {
+      const stdoutStream = this.subprocess.get_stdout_pipe();
+      const stderrStream = this.subprocess.get_stderr_pipe();
+      cb(ecode, stdoutStream, stderrStream);
     });
   }
 
