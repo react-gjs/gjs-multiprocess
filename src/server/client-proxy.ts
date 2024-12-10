@@ -5,26 +5,25 @@ import type { EventEmitter } from "../shared/event-emitter";
 import { IdGenerator } from "../shared/id-generator";
 import { printError } from "../shared/print-error";
 import { Serializer } from "../shared/serializer";
-import type {
-  ClientEvents,
-  GetResult,
-  InvokeResult,
-} from "./client-controller";
+import type { ClientEvents, GetResult, InvokeResult } from "./client-controller";
 
 type ClientInterface = InterfaceOf<ClientService>;
 
 type ValuesOf<T> = T[keyof T];
 
-type KeyOfMethods<T> = ValuesOf<{
-  [K in keyof T as T[K] extends Function ? K : never]: K;
-}>;
+type KeyOfMethods<T> = ValuesOf<
+  {
+    [K in keyof T as T[K] extends Function ? K : never]: K;
+  }
+>;
 
-type KeyOfProperties<T> = ValuesOf<{
-  [K in keyof T as T[K] extends Function ? never : K]: K;
-}>;
+type KeyOfProperties<T> = ValuesOf<
+  {
+    [K in keyof T as T[K] extends Function ? never : K]: K;
+  }
+>;
 
-type Promisify<F> = F extends (...args: infer A) => infer R
-  ? (...args: A) => Promise<R>
+type Promisify<F> = F extends (...args: infer A) => infer R ? (...args: A) => Promise<R>
   : never;
 
 type InvokeProxy<C extends ClientModule> = {

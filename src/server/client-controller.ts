@@ -21,15 +21,15 @@ const parentLocation = fileUri.startsWith("resource://")
 
 export type InvokeResult =
   | {
-      actionID: string;
-      result: string;
-      error?: undefined;
-    }
+    actionID: string;
+    result: string;
+    error?: undefined;
+  }
   | {
-      actionID: string;
-      error: string;
-      result?: undefined;
-    };
+    actionID: string;
+    error: string;
+    result?: undefined;
+  };
 
 export type GetResult = {
   actionID: string;
@@ -97,13 +97,13 @@ export class ClientController {
         actionID,
         error instanceof Error
           ? Serializer.stringify({
-              name: error.name,
-              message: error.message,
-              stack: error.stack,
-            })
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          })
           : Serializer.stringify({
-              error: String(error),
-            }),
+            error: String(error),
+          }),
       )
       .catch(printError);
   }
@@ -181,16 +181,13 @@ export class ClientController {
 
   public notifyLoadError(e: string) {
     const serializedError = attempt(() => Serializer.parse(e));
-    const isObject =
-      typeof serializedError === "object" && serializedError !== null;
-    const message =
-      isObject && "message" in serializedError
-        ? (serializedError.message as string)
-        : String(serializedError);
-    const stack =
-      isObject && "stack" in serializedError
-        ? (serializedError.stack as string)
-        : undefined;
+    const isObject = typeof serializedError === "object" && serializedError !== null;
+    const message = isObject && "message" in serializedError
+      ? (serializedError.message as string)
+      : String(serializedError);
+    const stack = isObject && "stack" in serializedError
+      ? (serializedError.stack as string)
+      : undefined;
 
     const error = new Error(message);
     error.stack = stack;
